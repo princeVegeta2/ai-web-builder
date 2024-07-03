@@ -115,7 +115,8 @@
 }
 
 .colors-button,
-.links-button {
+.links-button,
+.images-button {
   display: flex;
   align-items: center;
   background-color: transparent;
@@ -124,27 +125,35 @@
   color: #747266;
   font-size: 0.9rem;
   transition: color 0.3s;
+  margin-top: 5px;
 }
 
 .colors-button:hover,
-.links-button:hover {
+.links-button:hover,
+.images-button:hover {
   color: #000;
 }
 
 .colors-icon,
-.links-icon {
+.links-icon,
+.images-icon {
   width: 20px;
   height: 20px;
   margin-right: 5px;
 }
 
-.color-input-wrapper {
+.color-input-wrapper,
+.link-input-wrapper,
+.image-input-wrapper {
   display: flex;
   align-items: center;
   margin-top: 5px;
 }
 
-.color-input {
+.color-input,
+.link-input-name,
+.link-input-url,
+.image-input {
   width: 70%;
   padding: 5px;
   margin-right: 5px;
@@ -153,14 +162,11 @@
 }
 
 .add-color-button,
-.add-link-button {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
 .remove-color-button,
-.remove-link-button {
+.add-link-button,
+.remove-link-button,
+.add-image-button,
+.remove-image-button {
   width: 20px;
   height: 20px;
   cursor: pointer;
