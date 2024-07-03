@@ -114,7 +114,8 @@
   margin-top: 10px;
 }
 
-.colors-button {
+.colors-button,
+.links-button {
   display: flex;
   align-items: center;
   background-color: transparent;
@@ -125,11 +126,13 @@
   transition: color 0.3s;
 }
 
-.colors-button:hover {
+.colors-button:hover,
+.links-button:hover {
   color: #000;
 }
 
-.colors-icon {
+.colors-icon,
+.links-icon {
   width: 20px;
   height: 20px;
   margin-right: 5px;
@@ -149,7 +152,15 @@
   border-radius: 4px;
 }
 
-.add-color-button {
+.add-color-button,
+.add-link-button {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.remove-color-button,
+.remove-link-button {
   width: 20px;
   height: 20px;
   cursor: pointer;

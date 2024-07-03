@@ -1,13 +1,17 @@
+// File: components/pages/WebBuilder.js
 import React, { useState } from 'react';
 import '../../assets/styles/WebBuilder.css';
 import plusSymbol from '../../assets/images/plus-symbol.png';
 import trashcan from '../../assets/images/trashcan.png';
 import colors from '../../assets/images/colors.png';
+import linkIcon from '../../assets/images/link.png';
 import ColorModal from '../common/ColorModal';
+import LinkModal from '../common/LinkModal';
 
 function WebBuilder() {
   const [windows, setWindows] = useState([{ id: 1, widgets: [] }]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isColorModalOpen, setIsColorModalOpen] = useState(false);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [currentWidget, setCurrentWidget] = useState(null);
 
   const addWindow = (id) => {
@@ -33,7 +37,7 @@ function WebBuilder() {
   const handleOnDrop = (e, windowId) => {
     e.preventDefault();
     const widgetType = e.dataTransfer.getData("widgetType");
-    const newWidget = { id: Date.now(), type: widgetType, colors: [{ id: Date.now(), value: '' }] }; // Add a default color input
+    const newWidget = { id: Date.now(), type: widgetType, colors: [{ id: Date.now(), value: '' }], links: [{ id: Date.now(), name: '', url: '' }] }; // Add a default link input
     const updatedWindows = windows.map(window =>
       window.id === windowId
         ? { ...window, widgets: [...window.widgets, newWidget] }
@@ -55,6 +59,7 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Functions for color modal
   const addColorInput = (windowId, widgetId) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -108,17 +113,86 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
-  const openModal = (windowId, widgetId) => {
+  const openColorModal = (windowId, widgetId) => {
     setCurrentWidget({ windowId, widgetId });
-    setIsModalOpen(true);
+    setIsColorModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const closeColorModal = () => {
+    setIsColorModalOpen(false);
     if (currentWidget) {
       const widget = windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId);
       const colorValues = widget.colors.map(color => color.value);
       console.log('Colors:', colorValues);
+    }
+    setCurrentWidget(null);
+  };
+
+  // Functions for link modal
+  const addLinkInput = (windowId, widgetId) => {
+    const updatedWindows = windows.map(window =>
+      window.id === windowId
+        ? {
+          ...window,
+          widgets: window.widgets.map(widget =>
+            widget.id === widgetId
+              ? { ...widget, links: [...widget.links, { id: Date.now(), name: '', url: '' }] }
+              : widget
+          )
+        }
+        : window
+    );
+    setWindows(updatedWindows);
+  };
+
+  const removeLinkInput = (windowId, widgetId, linkId) => {
+    const updatedWindows = windows.map(window =>
+      window.id === windowId
+        ? {
+          ...window,
+          widgets: window.widgets.map(widget =>
+            widget.id === widgetId
+              ? { ...widget, links: widget.links.filter(link => link.id !== linkId) }
+              : widget
+          )
+        }
+        : window
+    );
+    setWindows(updatedWindows);
+  };
+
+  const handleLinkChange = (windowId, widgetId, linkId, field, value) => {
+    const updatedWindows = windows.map(window =>
+      window.id === windowId
+        ? {
+          ...window,
+          widgets: window.widgets.map(widget =>
+            widget.id === widgetId
+              ? {
+                ...widget,
+                links: widget.links.map(link =>
+                  link.id === linkId ? { ...link, [field]: value } : link
+                )
+              }
+              : widget
+          )
+        }
+        : window
+    );
+    setWindows(updatedWindows);
+  };
+
+  const openLinkModal = (windowId, widgetId) => {
+    setCurrentWidget({ windowId, widgetId });
+    setIsLinkModalOpen(true);
+  };
+
+  const closeLinkModal = () => {
+    setIsLinkModalOpen(false);
+    if (currentWidget) {
+      const widget = windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId);
+      const linkValues = widget.links.map(link => ({ name: link.name, url: link.url }));
+      console.log('Links:', linkValues);
     }
     setCurrentWidget(null);
   };
@@ -168,9 +242,14 @@ function WebBuilder() {
                         onClick={() => removeWidget(window.id, widget.id)}
                       />
                     </div>
-                    <button className="colors-button" onClick={() => openModal(window.id, widget.id)}>
-                      <img src={colors} alt="Colors" className="colors-icon" /> Colors
-                    </button>
+                    <div className="component-actions">
+                      <button className="colors-button" onClick={() => openColorModal(window.id, widget.id)}>
+                        <img src={colors} alt="Colors" className="colors-icon" /> Colors
+                      </button>
+                      <button className="links-button" onClick={() => openLinkModal(window.id, widget.id)}>
+                        <img src={linkIcon} alt="Links" className="links-icon" /> Links
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -194,16 +273,28 @@ function WebBuilder() {
           </div>
         ))}
         {currentWidget && (
-          <ColorModal
-            isOpen={isModalOpen}
-            onClose={closeModal}
-            colors={windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId).colors}
-            addColorInput={addColorInput}
-            handleColorChange={handleColorChange}
-            removeColorInput={removeColorInput}
-            windowId={currentWidget.windowId}
-            widgetId={currentWidget.widgetId}
-          />
+          <>
+            <ColorModal
+              isOpen={isColorModalOpen}
+              onClose={closeColorModal}
+              colors={windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId).colors}
+              addColorInput={addColorInput}
+              handleColorChange={handleColorChange}
+              removeColorInput={removeColorInput}
+              windowId={currentWidget.windowId}
+              widgetId={currentWidget.widgetId}
+            />
+            <LinkModal
+              isOpen={isLinkModalOpen}
+              onClose={closeLinkModal}
+              links={windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId).links}
+              addLinkInput={addLinkInput}
+              handleLinkChange={handleLinkChange}
+              removeLinkInput={removeLinkInput}
+              windowId={currentWidget.windowId}
+              widgetId={currentWidget.widgetId}
+            />
+          </>
         )}
       </div>
     </div>
