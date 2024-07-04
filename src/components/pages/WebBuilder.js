@@ -5,18 +5,22 @@ import plusSymbol from '../../assets/images/plus-symbol.png';
 import trashcan from '../../assets/images/trashcan.png';
 import colors from '../../assets/images/colors.png';
 import linkIcon from '../../assets/images/link.png';
-import imageIcon from '../../assets/images/image.png'; // Import the image icon
+import imageIcon from '../../assets/images/image.png';
+import promptIcon from '../../assets/images/prompt.png'; // Import the prompt icon
 import ColorModal from '../common/ColorModal';
 import LinkModal from '../common/LinkModal';
-import ImageModal from '../common/ImageModal'; // Import the ImageModal
+import ImageModal from '../common/ImageModal';
+import PromptModal from '../common/PromptModal'; // Import the PromptModal
 
 function WebBuilder() {
-  const [windows, setWindows] = useState([{ id: 1, widgets: [] }]);
-  const [isColorModalOpen, setIsColorModalOpen] = useState(false);
-  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [currentWidget, setCurrentWidget] = useState(null);
+  const [windows, setWindows] = useState([{ id: 1, widgets: [] }]); // Window(rectangle) state
+  const [isColorModalOpen, setIsColorModalOpen] = useState(false); // Adds state for ColorModal
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false); // Adds state for LinkModal
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // Adds state for ImageModal
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false); // Adds state for PromptModal
+  const [currentWidget, setCurrentWidget] = useState(null); // Current widget state
 
+  // Function to add workspace rectangles
   const addWindow = (id) => {
     const newWindow = { id: windows.length + 1, widgets: [] };
     const updatedWindows = windows.map(window =>
@@ -25,6 +29,7 @@ function WebBuilder() {
     setWindows([...updatedWindows, newWindow]);
   };
 
+  // Function to remove workspace rectangles
   const removeWindow = (id) => {
     const remainingWindows = windows.filter(window => window.id !== id);
     if (remainingWindows.length === 1) {
@@ -33,10 +38,12 @@ function WebBuilder() {
     setWindows(remainingWindows);
   };
 
+  // Function for drag
   const handleOnDrag = (e, widgetType) => {
     e.dataTransfer.setData("widgetType", widgetType);
   };
 
+  // Function for drop
   const handleOnDrop = (e, windowId) => {
     e.preventDefault();
     const widgetType = e.dataTransfer.getData("widgetType");
@@ -45,7 +52,8 @@ function WebBuilder() {
       type: widgetType,
       colors: [{ id: Date.now(), value: '' }],
       links: [{ id: Date.now(), name: '', url: '' }],
-      images: [{ id: Date.now(), value: '' }] // Add a default image input
+      images: [{ id: Date.now(), value: '' }],
+      promptString: '' // Add a default prompt string
     };
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -55,10 +63,12 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Function for dragging over
   const handleDragOver = (e) => {
     e.preventDefault();
   };
 
+  // Function to remove a widget from a workspace
   const removeWidget = (windowId, widgetId) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -69,6 +79,7 @@ function WebBuilder() {
   };
 
   // Functions for color modal
+  // Adds a textbox for a color input
   const addColorInput = (windowId, widgetId) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -85,6 +96,7 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Removes a textbox for a color input
   const removeColorInput = (windowId, widgetId, colorId) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -101,6 +113,7 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Color change
   const handleColorChange = (windowId, widgetId, colorId, value) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -122,11 +135,13 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Handles opening the color modal 
   const openColorModal = (windowId, widgetId) => {
     setCurrentWidget({ windowId, widgetId });
     setIsColorModalOpen(true);
   };
 
+  // Handles closing the color modal. Saves entered color strings into a colorValues array
   const closeColorModal = () => {
     setIsColorModalOpen(false);
     if (currentWidget) {
@@ -138,6 +153,7 @@ function WebBuilder() {
   };
 
   // Functions for link modal
+  // Function to add link input textbox
   const addLinkInput = (windowId, widgetId) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -154,6 +170,7 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Function to remove link modal input textbox
   const removeLinkInput = (windowId, widgetId, linkId) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -170,6 +187,7 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Function to handle link change
   const handleLinkChange = (windowId, widgetId, linkId, field, value) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -191,11 +209,13 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Function to handle opening of link modal
   const openLinkModal = (windowId, widgetId) => {
     setCurrentWidget({ windowId, widgetId });
     setIsLinkModalOpen(true);
   };
 
+  // Function to close link modal. Saves strings into linkValues
   const closeLinkModal = () => {
     setIsLinkModalOpen(false);
     if (currentWidget) {
@@ -207,6 +227,7 @@ function WebBuilder() {
   };
 
   // Functions for image modal
+  // Function to add image input textbox
   const addImageInput = (windowId, widgetId) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -223,6 +244,7 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Function to remove input textbox
   const removeImageInput = (windowId, widgetId, imageId) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -239,6 +261,7 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Function to handle image change
   const handleImageChange = (windowId, widgetId, imageId, value) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -260,11 +283,13 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Function to handle opening of an image modal
   const openImageModal = (windowId, widgetId) => {
     setCurrentWidget({ windowId, widgetId });
     setIsImageModalOpen(true);
   };
 
+  // Function to handle closing of the image modal. Saves the string to the imageValues array
   const closeImageModal = () => {
     setIsImageModalOpen(false);
     if (currentWidget) {
@@ -275,6 +300,41 @@ function WebBuilder() {
     setCurrentWidget(null);
   };
 
+  // Functions for prompt modal
+  // Function to handle prompt change
+  const handlePromptChange = (windowId, widgetId, value) => {
+    const updatedWindows = windows.map(window =>
+      window.id === windowId
+        ? {
+          ...window,
+          widgets: window.widgets.map(widget =>
+            widget.id === widgetId
+              ? { ...widget, promptString: value }
+              : widget
+          )
+        }
+        : window
+    );
+    setWindows(updatedWindows);
+  };
+
+  // Function to handle opening prompt modal
+  const openPromptModal = (windowId, widgetId) => {
+    setCurrentWidget({ windowId, widgetId });
+    setIsPromptModalOpen(true);
+  };
+
+  // Function to handle closing the prompt modal. Saves the value in PromptModal.promptString string
+  const closePromptModal = () => {
+    setIsPromptModalOpen(false);
+    if (currentWidget) {
+      const widget = windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId);
+      console.log('Prompt:', widget.promptString);
+    }
+    setCurrentWidget(null);
+  };
+
+  // Website page list of elements(widgets in the sidebar)
   const components = [
     { name: 'Navbar' },
     { name: 'Header' },
@@ -330,6 +390,9 @@ function WebBuilder() {
                       <button className="images-button" onClick={() => openImageModal(window.id, widget.id)}>
                         <img src={imageIcon} alt="Images" className="images-icon" /> Images
                       </button>
+                      <button className="prompt-button" onClick={() => openPromptModal(window.id, widget.id)}>
+                        <img src={promptIcon} alt="Prompt" className="prompt-icon" /> Prompt
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -382,6 +445,14 @@ function WebBuilder() {
               addImageInput={addImageInput}
               handleImageChange={handleImageChange}
               removeImageInput={removeImageInput}
+              windowId={currentWidget.windowId}
+              widgetId={currentWidget.widgetId}
+            />
+            <PromptModal
+              isOpen={isPromptModalOpen}
+              onClose={closePromptModal}
+              promptString={windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId).promptString}
+              handlePromptChange={handlePromptChange}
               windowId={currentWidget.windowId}
               widgetId={currentWidget.widgetId}
             />

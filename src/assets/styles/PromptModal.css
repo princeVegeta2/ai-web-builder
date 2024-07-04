@@ -1,0 +1,54 @@
+/* File: components/common/PromptModal.css */
+.prompt-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .prompt-modal {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 800px;
+    position: relative;
+  }
+  
+  .prompt-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .prompt-modal-header h2 {
+    margin: 0;
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+  
+  .prompt-modal-body {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .prompt-input {
+    width: 95%;
+    height: 200px;
+    padding: 10px;
+    border: 1px solid #747266;
+    border-radius: 4px;
+    resize: none;
+  }
+  

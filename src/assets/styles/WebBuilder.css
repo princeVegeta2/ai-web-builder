@@ -116,7 +116,8 @@
 
 .colors-button,
 .links-button,
-.images-button {
+.images-button,
+.prompt-button {
   display: flex;
   align-items: center;
   background-color: transparent;
@@ -130,13 +131,15 @@
 
 .colors-button:hover,
 .links-button:hover,
-.images-button:hover {
+.images-button:hover,
+.prompt-button:hover {
   color: #000;
 }
 
 .colors-icon,
 .links-icon,
-.images-icon {
+.images-icon,
+.prompt-icon {
   width: 20px;
   height: 20px;
   margin-right: 5px;
