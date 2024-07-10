@@ -1,70 +1,27 @@
-# Getting Started with Create React App
+# Anthropic WebBuilder
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This website is developped using React, and is designed towards simplyfing the process of creating websites using Anthropic's Claude AI. It allows the user to build out their website's structure using user-friendly widgets in a no-code no-text environment, making it more more simple and accessible than writing out a prompt.
 
-## Available Scripts
+## Usage
 
-In the project directory, you can run:
+Since this website needs to be connected to a paid Anthropic API, you will need to setup your own connection to the API. The infrastructure for this is pre-built and all you need to do is add a ``.env`` file and a ``REACT_APP_ANTHROPIC_API_KEY``
 
-### `npm start`
+## Access
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Use this code to access the WebBuilder page: **VqxgAnbK6xu0nI9YJU6XejE5qFsuI8Os**. Enter it in the Home page's textbox.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## WebBuilder
 
-### `npm test`
+On the left you can see a list of widgets, each representing a section of the website. In the center, each white rectangle represents a droppable workspace and a separate page. You can drag and drop widgets from the widget list onto the page workspace and add/remove the pages and widgets. 
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Modals
 
-### `npm run build`
+Each widget has multiple modals. Colors, Links and Images modals modify the prompt to include these features in the JS and CSS code provided by the Claude AI. The Prompt modal allows the user to modify the generated code by adding their own prompt text to it.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Generate website
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The functionality of this button isn't really implemented yet. Right now it simply redirects the user to the Results page which displays the raw code sent to us by Claude. In the future, I will change it such that it gives the user the appropriate .JS and .CSS files which they can include in their React workspace.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## License
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This is a public repository, and you can use this however you'd like. 
