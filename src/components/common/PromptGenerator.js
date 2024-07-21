@@ -1,6 +1,6 @@
-// File: components/common/PromptGenerator.js
+// src/components/common/PromptGenerator.js
 
-import { sendPromptToAnthropic } from '../../utils/anthropicApi';
+import { sendPromptToTogether } from '../../utils/togetherApi';
 
 /**
  * Generates a prompt based on the given windows state.
@@ -25,7 +25,6 @@ const generatePrompt = (windows) => {
     window.widgets.forEach((widget, widgetIndex) => {
       prompt += `  Section ${widgetIndex + 1} (${widget.type}):\n`;
 
-      // Generate a sub-prompt for each widget based on its type and properties
       let subPrompt = `For the ${widget.type.toLowerCase()} of this page`;
 
       if (widget.colors.length > 0) {
@@ -57,7 +56,9 @@ const generatePrompt = (windows) => {
 export const generateAndSendPrompt = async (windows) => {
   const prompt = generatePrompt(windows);
   try {
-    const response = await sendPromptToAnthropic(prompt);
+    console.log('Sending prompt to Together AI:', prompt);
+    const response = await sendPromptToTogether(prompt);
+    console.log('Received response from Together AI:', response);
     return response;
   } catch (error) {
     console.error("Error generating and sending prompt:", error);

@@ -11,7 +11,7 @@ import ColorModal from '../common/ColorModal';
 import LinkModal from '../common/LinkModal';
 import ImageModal from '../common/ImageModal';
 import PromptModal from '../common/PromptModal';
-import { generateAndSendPrompt } from '../common/PromptGenerator';
+import generatePrompt, { generateAndSendPrompt } from '../common/PromptGenerator';
 
 function WebBuilder() {
   const [windows, setWindows] = useState([{ id: 1, widgets: [] }]);
@@ -22,7 +22,6 @@ function WebBuilder() {
   const [currentWidget, setCurrentWidget] = useState(null);
   const [generatedWebsite, setGeneratedWebsite] = useState(null);
   const navigate = useNavigate();
-
 
   const addWindow = (id) => {
     const newWindow = { id: windows.length + 1, widgets: [] };
@@ -312,15 +311,19 @@ function WebBuilder() {
 
   const generateWebsitePrompt = async () => {
     try {
+      console.log('Generating prompt...');
+      const prompt = generatePrompt(windows);
+      console.log('Generated Prompt:', prompt);
+  
       const response = await generateAndSendPrompt(windows);
+      console.log('Received response from Together AI:', response);
+  
       setGeneratedWebsite(response);
       navigate('/result', { state: { generatedWebsite: response } });
     } catch (error) {
       console.error("Error generating website:", error);
     }
   };
-
-  
 
   const components = [
     { name: 'Navbar' },
