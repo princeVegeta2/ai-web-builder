@@ -14,7 +14,7 @@ import PromptModal from '../common/PromptModal';
 import generatePrompt, { generateAndSendPrompt } from '../common/PromptGenerator';
 
 function WebBuilder() {
-  const [windows, setWindows] = useState([{ id: 1, widgets: [] }]);
+  const [windows, setWindows] = useState([{ id: 1, name: 'Page 1', widgets: [] }]);
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -23,14 +23,16 @@ function WebBuilder() {
   const [generatedWebsite, setGeneratedWebsite] = useState(null);
   const navigate = useNavigate();
 
+  // Adds a workspace window rectangle
   const addWindow = (id) => {
-    const newWindow = { id: windows.length + 1, widgets: [] };
+    const newWindow = { id: windows.length + 1, name: `Page ${windows.length + 1}`, widgets: [] };
     const updatedWindows = windows.map(window =>
       window.id === id ? { ...window, hasPlusButton: false } : window
     );
     setWindows([...updatedWindows, newWindow]);
   };
 
+  // Removes a workspace window rectangle
   const removeWindow = (id) => {
     const remainingWindows = windows.filter(window => window.id !== id);
     if (remainingWindows.length === 1) {
@@ -39,10 +41,12 @@ function WebBuilder() {
     setWindows(remainingWindows);
   };
 
+  // Widget drag 
   const handleOnDrag = (e, widgetType) => {
     e.dataTransfer.setData("widgetType", widgetType);
   };
 
+  // Widget drop into a workspace window rectangle
   const handleOnDrop = (e, windowId) => {
     e.preventDefault();
     const widgetType = e.dataTransfer.getData("widgetType");
@@ -62,10 +66,12 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
+  // Prevents default actions while dragging over
   const handleDragOver = (e) => {
     e.preventDefault();
   };
 
+  // Removing a widget
   const removeWidget = (windowId, widgetId) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -75,256 +81,104 @@ function WebBuilder() {
     setWindows(updatedWindows);
   };
 
-  const addColorInput = (windowId, widgetId) => {
+  // Handle Page Name Change
+  const handlePageNameChange = (windowId, newName) => {
     const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? { ...widget, colors: [...widget.colors, { id: Date.now(), value: '' }] }
-              : widget
-          )
-        }
-        : window
+      window.id === windowId ? { ...window, name: newName } : window
     );
     setWindows(updatedWindows);
   };
 
-  const removeColorInput = (windowId, widgetId, colorId) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? { ...widget, colors: widget.colors.filter(color => color.id !== colorId) }
-              : widget
-          )
-        }
-        : window
-    );
-    setWindows(updatedWindows);
-  };
-
-  const handleColorChange = (windowId, widgetId, colorId, value) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? {
-                ...widget,
-                colors: widget.colors.map(color =>
-                  color.id === colorId ? { ...color, value } : color
-                )
-              }
-              : widget
-          )
-        }
-        : window
-    );
-    setWindows(updatedWindows);
-  };
-
+  // Opens a Color Modal
+  /*
+   ColorModal logic and functions used are contained in
+   the /src/components/common/ColorModal.js
+  */
   const openColorModal = (windowId, widgetId) => {
     setCurrentWidget({ windowId, widgetId });
     setIsColorModalOpen(true);
   };
 
+  // Closes a Color Modal
   const closeColorModal = () => {
     setIsColorModalOpen(false);
-    if (currentWidget) {
-      const widget = windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId);
-      const colorValues = widget.colors.map(color => color.value);
-      console.log('Colors:', colorValues);
-    }
     setCurrentWidget(null);
   };
 
-  const addLinkInput = (windowId, widgetId) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? { ...widget, links: [...widget.links, { id: Date.now(), name: '', url: '' }] }
-              : widget
-          )
-        }
-        : window
-    );
-    setWindows(updatedWindows);
-  };
-
-  const removeLinkInput = (windowId, widgetId, linkId) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? { ...widget, links: widget.links.filter(link => link.id !== linkId) }
-              : widget
-          )
-        }
-        : window
-    );
-    setWindows(updatedWindows);
-  };
-
-  const handleLinkChange = (windowId, widgetId, linkId, field, value) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? {
-                ...widget,
-                links: widget.links.map(link =>
-                  link.id === linkId ? { ...link, [field]: value } : link
-                )
-              }
-              : widget
-          )
-        }
-        : window
-    );
-    setWindows(updatedWindows);
-  };
-
+  // Opens a Link Modal
+  /*
+   LinkModal logic and functions used are contained in
+   the /src/components/common/LinkModal.js
+  */
   const openLinkModal = (windowId, widgetId) => {
     setCurrentWidget({ windowId, widgetId });
     setIsLinkModalOpen(true);
   };
 
+  // Closes a Link Modal
   const closeLinkModal = () => {
     setIsLinkModalOpen(false);
-    if (currentWidget) {
-      const widget = windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId);
-      const linkValues = widget.links.map(link => ({ name: link.name, url: link.url }));
-      console.log('Links:', linkValues);
-    }
     setCurrentWidget(null);
   };
 
-  const addImageInput = (windowId, widgetId) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? { ...widget, images: [...widget.images, { id: Date.now(), value: '' }] }
-              : widget
-          )
-        }
-        : window
-    );
-    setWindows(updatedWindows);
-  };
-
-  const removeImageInput = (windowId, widgetId, imageId) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? { ...widget, images: widget.images.filter(image => image.id !== imageId) }
-              : widget
-          )
-        }
-        : window
-    );
-    setWindows(updatedWindows);
-  };
-
-  const handleImageChange = (windowId, widgetId, imageId, value) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? {
-                ...widget,
-                images: widget.images.map(image =>
-                  image.id === imageId ? { ...image, value } : image
-                )
-              }
-              : widget
-          )
-        }
-        : window
-    );
-    setWindows(updatedWindows);
-  };
-
+  // Opens an Image Modal
+  /*
+   ImageModal logic and functions used are contained in
+   the /src/components/common/ImageModal.js
+  */
   const openImageModal = (windowId, widgetId) => {
     setCurrentWidget({ windowId, widgetId });
     setIsImageModalOpen(true);
   };
 
+  // Closes an Image Modal
   const closeImageModal = () => {
     setIsImageModalOpen(false);
-    if (currentWidget) {
-      const widget = windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId);
-      const imageValues = widget.images.map(image => image.value);
-      console.log('Images:', imageValues);
-    }
     setCurrentWidget(null);
   };
 
-  const handlePromptChange = (windowId, widgetId, value) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? { ...widget, promptString: value }
-              : widget
-          )
-        }
-        : window
-    );
-    setWindows(updatedWindows);
-  };
-
+  // Opens a Prompt Modal
+  /*
+   PromptModal logic and functions used are contained in
+   the /src/components/common/PromptModal.js
+  */
   const openPromptModal = (windowId, widgetId) => {
     setCurrentWidget({ windowId, widgetId });
     setIsPromptModalOpen(true);
   };
 
+  // Closes a Prompt Modal
   const closePromptModal = () => {
     setIsPromptModalOpen(false);
-    if (currentWidget) {
-      const widget = windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId);
-      console.log('Prompt:', widget.promptString);
-    }
     setCurrentWidget(null);
   };
 
+  // Generates a prompt
+  /*
+   Uses generatePrompt and generateAndSendPrompt from /src/components/common/PromptGenerator.js
+   then navigates to the Result page from /src/components/pages/Result.js
+  */
   const generateWebsitePrompt = async () => {
     try {
-      console.log('Generating prompt...');
       const prompt = generatePrompt(windows);
-      console.log('Generated Prompt:', prompt);
-  
       const response = await generateAndSendPrompt(windows);
-      console.log('Received response from Together AI:', response);
   
       setGeneratedWebsite(response);
       navigate('/result', { state: { generatedWebsite: response } });
     } catch (error) {
-      console.error("Error generating website:", error);
+      alert('Something went wrong');
     }
   };
 
+
+  // Generates a prompt but doesnt send it. Only for debugging purposes
+  const debugGenerateWebsitePrompt = async() => {
+    console.log('Generating prompt...');
+    const prompt = generatePrompt(windows);
+    console.log('Generated Prompt:', prompt);
+  }
+
+  // A list of Widgets in the left pannel of the WebBuilder page.
   const components = [
     { name: 'Navbar' },
     { name: 'Header' },
@@ -353,6 +207,12 @@ function WebBuilder() {
       <div className="webbuilder">
         {windows.map((window) => (
           <div key={window.id} className="workspace-window">
+            <input
+              type="text"
+              className="page-name-input"
+              value={window.name}
+              onChange={(e) => handlePageNameChange(window.id, e.target.value)}
+            />
             <div className="rectangle-container">
               <div
                 className="rectangle"
@@ -411,44 +271,34 @@ function WebBuilder() {
             <ColorModal
               isOpen={isColorModalOpen}
               onClose={closeColorModal}
-              colors={windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId).colors}
-              addColorInput={addColorInput}
-              handleColorChange={handleColorChange}
-              removeColorInput={removeColorInput}
-              windowId={currentWidget.windowId}
-              widgetId={currentWidget.widgetId}
+              windows={windows}
+              setWindows={setWindows}
+              currentWidget={currentWidget}
             />
             <LinkModal
               isOpen={isLinkModalOpen}
               onClose={closeLinkModal}
-              links={windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId).links}
-              addLinkInput={addLinkInput}
-              handleLinkChange={handleLinkChange}
-              removeLinkInput={removeLinkInput}
-              windowId={currentWidget.windowId}
-              widgetId={currentWidget.widgetId}
+              windows={windows}
+              setWindows={setWindows}
+              currentWidget={currentWidget}
             />
             <ImageModal
               isOpen={isImageModalOpen}
               onClose={closeImageModal}
-              images={windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId).images}
-              addImageInput={addImageInput}
-              handleImageChange={handleImageChange}
-              removeImageInput={removeImageInput}
-              windowId={currentWidget.windowId}
-              widgetId={currentWidget.widgetId}
+              windows={windows}
+              setWindows={setWindows}
+              currentWidget={currentWidget}
             />
             <PromptModal
               isOpen={isPromptModalOpen}
               onClose={closePromptModal}
-              promptString={windows.find(w => w.id === currentWidget.windowId).widgets.find(w => w.id === currentWidget.widgetId).promptString}
-              handlePromptChange={handlePromptChange}
-              windowId={currentWidget.windowId}
-              widgetId={currentWidget.widgetId}
+              windows={windows}
+              setWindows={setWindows}
+              currentWidget={currentWidget}
             />
           </>
         )}
-        <button className="generate-prompt-button" onClick={generateWebsitePrompt}>
+        <button className="generate-prompt-button" onClick={debugGenerateWebsitePrompt}>
           Generate Website Prompt
         </button>
         {generatedWebsite && (

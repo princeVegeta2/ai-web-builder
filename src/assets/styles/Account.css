@@ -1,0 +1,36 @@
+/*Account.css*/
+
+.account-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f3f2ec;
+    color: #747266;
+    text-align: center;
+}
+
+.account-content {
+    background-color: #f3f2ec;
+    border: 2px solid #747266;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 400px;
+    width: 100%;
+}
+
+.account-content h2 {
+    margin-bottom: 20px;
+    color: #747266;
+}
+
+.account-content p {
+    margin: 10px 0;
+    font-size: 1.2rem;
+    color: #747266;
+}
+
+.account-content p strong {
+    color: #747266;
+}

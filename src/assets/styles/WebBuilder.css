@@ -75,6 +75,23 @@
   padding: 10px;
 }
 
+.page-name-input {
+  width: 50%;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  text-align: center;
+  border: 1px solid #747266;
+  border-radius: 4px;
+  background-color: #efede3;
+  color: #747266;
+}
+
+.page-name-input:focus {
+  outline: none;
+  border-color: #000;
+}
+
 .plus-button {
   width: 30px;
   height: 30px;

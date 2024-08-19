@@ -7,6 +7,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import Home from './components/pages/Home';
 import WebBuilder from './components/pages/WebBuilder';
 import Result from './components/pages/Result';
+import Account from './components/pages/Account';
 import { AuthProvider } from './components/common/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import './App.css';
@@ -28,6 +29,7 @@ function App() {
                 }
               />
               <Route path="/result" element={<Result />} />
+              <Route path="/account" element={<Account />} />
             </Routes>
           </div>
         </Router>

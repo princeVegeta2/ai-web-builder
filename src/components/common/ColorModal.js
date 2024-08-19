@@ -3,15 +3,79 @@ import plusSymbol from '../../assets/images/plus-symbol.png';
 import '../../assets/styles/ColorModal.css';
 import trashcan from '../../assets/images/trashcan.png';
 
-const ColorModal = ({ isOpen, onClose, colors, addColorInput, handleColorChange, removeColorInput, windowId, widgetId }) => {
+const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => {
   if (!isOpen) return null;
+
+  const { windowId, widgetId } = currentWidget;
+
+  const addColorInput = () => {
+    const updatedWindows = windows.map(window =>
+      window.id === windowId
+        ? {
+          ...window,
+          widgets: window.widgets.map(widget =>
+            widget.id === widgetId
+              ? { ...widget, colors: [...widget.colors, { id: Date.now(), value: '' }] }
+              : widget
+          )
+        }
+        : window
+    );
+    setWindows(updatedWindows);
+  };
+
+  const removeColorInput = (colorId) => {
+    const updatedWindows = windows.map(window =>
+      window.id === windowId
+        ? {
+          ...window,
+          widgets: window.widgets.map(widget =>
+            widget.id === widgetId
+              ? { ...widget, colors: widget.colors.filter(color => color.id !== colorId) }
+              : widget
+          )
+        }
+        : window
+    );
+    setWindows(updatedWindows);
+  };
+
+  const handleColorChange = (colorId, value) => {
+    const updatedWindows = windows.map(window =>
+      window.id === windowId
+        ? {
+          ...window,
+          widgets: window.widgets.map(widget =>
+            widget.id === widgetId
+              ? {
+                ...widget,
+                colors: widget.colors.map(color =>
+                  color.id === colorId ? { ...color, value } : color
+                )
+              }
+              : widget
+          )
+        }
+        : window
+    );
+    setWindows(updatedWindows);
+  };
+
+  const closeColorModal = () => {
+    onClose();
+    const widget = windows.find(w => w.id === windowId).widgets.find(w => w.id === widgetId);
+    const colorValues = widget.colors.map(color => color.value);
+    console.log('Colors:', colorValues);
+  };
+
+  const colors = windows.find(w => w.id === windowId).widgets.find(w => w.id === widgetId).colors;
 
   return (
     <div className="color-modal-overlay">
       <div className="color-modal">
         <div className="color-modal-header">
           <h2>Colors</h2>
-          <button className="close-button" onClick={onClose}>X</button>
+          <button className="close-button" onClick={closeColorModal}>X</button>
         </div>
         <div className="color-modal-body">
           {colors.map((color, index) => (
@@ -20,7 +84,7 @@ const ColorModal = ({ isOpen, onClose, colors, addColorInput, handleColorChange,
                 type="text"
                 className="color-input"
                 value={color.value}
-                onChange={(e) => handleColorChange(windowId, widgetId, color.id, e.target.value)}
+                onChange={(e) => handleColorChange(color.id, e.target.value)}
                 placeholder="Enter color (hex or RGB)"
               />
               {index === colors.length - 1 ? (
@@ -28,7 +92,7 @@ const ColorModal = ({ isOpen, onClose, colors, addColorInput, handleColorChange,
                   src={plusSymbol}
                   alt="Add Color"
                   className="add-color-button"
-                  onClick={() => addColorInput(windowId, widgetId)}
+                  onClick={addColorInput}
                 />
               ) : (
                 index !== 0 && (
@@ -36,7 +100,7 @@ const ColorModal = ({ isOpen, onClose, colors, addColorInput, handleColorChange,
                     src={trashcan}
                     alt="Remove Color"
                     className="remove-color-button"
-                    onClick={() => removeColorInput(windowId, widgetId, color.id)}
+                    onClick={() => removeColorInput(color.id)}
                   />
                 )
               )}
