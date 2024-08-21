@@ -8,7 +8,7 @@ function Account() {
   const [builderAccess, setBuilderAccess] = useState(null);
   const { isAuthenticated } = useAuth();
 
-  const serverURL = process.env.REACT_APP_SERVER_AUTH; // Use environment variable for the base URL
+  const serverUserURL = process.env.REACT_APP_SERVER_USER;
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -17,7 +17,7 @@ function Account() {
 
         // Fetch username
         try {
-          const usernameResponse = await fetch(`${serverURL}/get-username`, {
+          const usernameResponse = await fetch(`${serverUserURL}/get-username`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` },
           });
@@ -33,7 +33,7 @@ function Account() {
 
         // Fetch email
         try {
-          const emailResponse = await fetch(`${serverURL}/get-email`, {
+          const emailResponse = await fetch(`${serverUserURL}/get-email`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` },
           });
@@ -49,7 +49,7 @@ function Account() {
 
         // Fetch builder access
         try {
-          const accessResponse = await fetch(`${serverURL}/check-builder-access`, {
+          const accessResponse = await fetch(`${serverUserURL}/check-builder-access`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` },
           });
@@ -66,7 +66,7 @@ function Account() {
 
       fetchUserData();
     }
-  }, [isAuthenticated, serverURL]);
+  }, [isAuthenticated, serverUserURL]);
 
   return (
     <div className="account-container">

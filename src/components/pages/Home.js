@@ -12,13 +12,14 @@ function Home() {
   const { login, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
-  const serverURL = process.env.REACT_APP_SERVER_AUTH; // Use the environment variable here
+  const serverAuthURL = process.env.REACT_APP_SERVER_AUTH;
+  const serverUserUrl = process.env.REACT_APP_SERVER_USER;
 
   useEffect(() => {
     if (isAuthenticated) {
       const fetchUsername = async () => {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${serverURL}/get-username`, {
+        const response = await fetch(`${serverUserUrl}/get-username`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -31,12 +32,12 @@ function Home() {
       };
       fetchUsername();
     }
-  }, [isAuthenticated, serverURL]);
+  }, [isAuthenticated, serverUserUrl]);
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${serverURL}/signup`, {
+      const response = await fetch(`${serverAuthURL}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -56,7 +57,7 @@ function Home() {
   const handleSignIn = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${serverURL}/login`, {
+      const response = await fetch(`${serverAuthURL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, password: formData.password }),
@@ -76,7 +77,7 @@ function Home() {
   const handleWebBuilderClick = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${serverURL}/check-builder-access`, {
+      const response = await fetch(`${serverUserUrl}/check-builder-access`, {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${token}` },
       });

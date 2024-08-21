@@ -14,7 +14,9 @@ import PromptModal from '../common/PromptModal';
 import generatePrompt, { generateAndSendPrompt } from '../common/PromptGenerator';
 
 function WebBuilder() {
-  const [windows, setWindows] = useState([{ id: 1, name: 'Page 1', widgets: [] }]);
+  const [projectName, setProjectName] = useState('');
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [windows, setWindows] = useState([]);
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -22,6 +24,35 @@ function WebBuilder() {
   const [currentWidget, setCurrentWidget] = useState(null);
   const [generatedWebsite, setGeneratedWebsite] = useState(null);
   const navigate = useNavigate();
+
+  const serverProjectURL = process.env.REACT_APP_SERVER_PROJECT;
+
+  // Function to handle project creation
+  const handleCreateProject = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch(`${serverProjectURL}/create-project`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`, // Assuming you store token in localStorage
+        },
+        body: JSON.stringify({ projectName }),
+      });
+
+      if (response.ok) {
+        const projectData = await response.json();
+        setWindows([{ id: 1, name: 'Page 1', widgets: [] }]); // Add default first window
+        setIsFormVisible(false); // Hide the form after creation
+        setProjectName(''); // Clear project name input
+      } else {
+        console.error('Failed to create project');
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+    }
+  };
 
   // Adds a workspace window rectangle
   const addWindow = (id) => {
@@ -162,7 +193,7 @@ function WebBuilder() {
     try {
       const prompt = generatePrompt(windows);
       const response = await generateAndSendPrompt(windows);
-  
+
       setGeneratedWebsite(response);
       navigate('/result', { state: { generatedWebsite: response } });
     } catch (error) {
@@ -172,7 +203,7 @@ function WebBuilder() {
 
 
   // Generates a prompt but doesnt send it. Only for debugging purposes
-  const debugGenerateWebsitePrompt = async() => {
+  const debugGenerateWebsitePrompt = async () => {
     console.log('Generating prompt...');
     const prompt = generatePrompt(windows);
     console.log('Generated Prompt:', prompt);
@@ -192,6 +223,12 @@ function WebBuilder() {
       <div className="sidebar">
         <h2>Components</h2>
         <ul>
+          <li
+            className="draggable-component create-project-button"
+            onClick={() => setIsFormVisible(true)}
+          >
+            Create Project
+          </li>
           {components.map((component, index) => (
             <li
               key={index}
@@ -205,67 +242,99 @@ function WebBuilder() {
         </ul>
       </div>
       <div className="webbuilder">
-        {windows.map((window) => (
-          <div key={window.id} className="workspace-window">
-            <input
-              type="text"
-              className="page-name-input"
-              value={window.name}
-              onChange={(e) => handlePageNameChange(window.id, e.target.value)}
-            />
-            <div className="rectangle-container">
-              <div
-                className="rectangle"
-                onDrop={(e) => handleOnDrop(e, window.id)}
-                onDragOver={handleDragOver}
-              >
-                {window.widgets.map((widget) => (
-                  <div key={widget.id} className="component">
-                    <div className="component-header">
-                      {widget.type}
-                      <img
-                        src={trashcan}
-                        alt="Remove Widget"
-                        className="widget-trashcan-button"
-                        onClick={() => removeWidget(window.id, widget.id)}
-                      />
+        {windows.length === 0 && !isFormVisible && (
+          <div className="no-windows-message">
+            <p>No project created yet. Click "Create Project" to start.</p>
+          </div>
+        )}
+        {isFormVisible && (
+          <form onSubmit={handleCreateProject} className="create-project-form">
+            <label>
+              Project Name:
+              <input
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                required
+              />
+            </label>
+            <button type="submit">Submit</button>
+          </form>
+        )}
+        {windows.length > 0 &&
+          windows.map((window) => (
+            <div key={window.id} className="workspace-window">
+              <input
+                type="text"
+                className="page-name-input"
+                value={window.name}
+                onChange={(e) => handlePageNameChange(window.id, e.target.value)}
+              />
+              <div className="rectangle-container">
+                <div
+                  className="rectangle"
+                  onDrop={(e) => handleOnDrop(e, window.id)}
+                  onDragOver={handleDragOver}
+                >
+                  {window.widgets.map((widget) => (
+                    <div key={widget.id} className="component">
+                      <div className="component-header">
+                        {widget.type}
+                        <img
+                          src={trashcan}
+                          alt="Remove Widget"
+                          className="widget-trashcan-button"
+                          onClick={() => removeWidget(window.id, widget.id)}
+                        />
+                      </div>
+                      <div className="component-actions">
+                        <button
+                          className="colors-button"
+                          onClick={() => openColorModal(window.id, widget.id)}
+                        >
+                          <img src={colors} alt="Colors" className="colors-icon" /> Colors
+                        </button>
+                        <button
+                          className="links-button"
+                          onClick={() => openLinkModal(window.id, widget.id)}
+                        >
+                          <img src={linkIcon} alt="Links" className="links-icon" /> Links
+                        </button>
+                        <button
+                          className="images-button"
+                          onClick={() => openImageModal(window.id, widget.id)}
+                        >
+                          <img src={imageIcon} alt="Images" className="images-icon" /> Images
+                        </button>
+                        <button
+                          className="prompt-button"
+                          onClick={() => openPromptModal(window.id, widget.id)}
+                        >
+                          <img src={promptIcon} alt="Prompt" className="prompt-icon" /> Prompt
+                        </button>
+                      </div>
                     </div>
-                    <div className="component-actions">
-                      <button className="colors-button" onClick={() => openColorModal(window.id, widget.id)}>
-                        <img src={colors} alt="Colors" className="colors-icon" /> Colors
-                      </button>
-                      <button className="links-button" onClick={() => openLinkModal(window.id, widget.id)}>
-                        <img src={linkIcon} alt="Links" className="links-icon" /> Links
-                      </button>
-                      <button className="images-button" onClick={() => openImageModal(window.id, widget.id)}>
-                        <img src={imageIcon} alt="Images" className="images-icon" /> Images
-                      </button>
-                      <button className="prompt-button" onClick={() => openPromptModal(window.id, widget.id)}>
-                        <img src={promptIcon} alt="Prompt" className="prompt-icon" /> Prompt
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                {window.id !== 1 && (
+                  <img
+                    src={trashcan}
+                    alt="Remove Window"
+                    className="trashcan-button"
+                    onClick={() => removeWindow(window.id)}
+                  />
+                )}
               </div>
-              {window.id !== 1 && (
+              {window.hasPlusButton !== false && (
                 <img
-                  src={trashcan}
-                  alt="Remove Window"
-                  className="trashcan-button"
-                  onClick={() => removeWindow(window.id)}
+                  src={plusSymbol}
+                  alt="Add Window"
+                  className="plus-button"
+                  onClick={() => addWindow(window.id)}
                 />
               )}
             </div>
-            {window.hasPlusButton !== false && (
-              <img
-                src={plusSymbol}
-                alt="Add Window"
-                className="plus-button"
-                onClick={() => addWindow(window.id)}
-              />
-            )}
-          </div>
-        ))}
+          ))}
         {currentWidget && (
           <>
             <ColorModal
@@ -298,15 +367,17 @@ function WebBuilder() {
             />
           </>
         )}
+        {windows.length > 0 && (
         <button className="generate-prompt-button" onClick={debugGenerateWebsitePrompt}>
           Generate Website Prompt
         </button>
-        {generatedWebsite && (
-        <div className="generated-website">
-          <h3>Generated Website:</h3>
-          <pre>{generatedWebsite}</pre>
-        </div>
       )}
+        {generatedWebsite && (
+          <div className="generated-website">
+            <h3>Generated Website:</h3>
+            <pre>{generatedWebsite}</pre>
+          </div>
+        )}
       </div>
     </div>
   );
