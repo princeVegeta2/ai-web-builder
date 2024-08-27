@@ -21,7 +21,7 @@ function Home() {
         const token = localStorage.getItem('token');
         const response = await fetch(`${serverUserUrl}/get-username`, {
           method: 'GET',
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
         if (response.ok) {
@@ -57,7 +57,7 @@ function Home() {
   const handleSignIn = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${serverAuthURL}/login`, {
+      const response = await fetch(`${serverAuthURL}/signin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, password: formData.password }),
@@ -79,11 +79,11 @@ function Home() {
       const token = localStorage.getItem('token');
       const response = await fetch(`${serverUserUrl}/check-builder-access`, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
 
-      if (response.ok && data.builder_access) {
+      if (response.ok && data.builderAccess) {
         navigate('/webbuilder');
       } else {
         alert('You do not have access to the Web Builder.');

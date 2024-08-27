@@ -15,8 +15,12 @@ import generatePrompt, { generateAndSendPrompt } from '../common/PromptGenerator
 
 function WebBuilder() {
   const [projectName, setProjectName] = useState('');
+  const [currentProjectName, setCurrentProjectName] = useState('');
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [windows, setWindows] = useState([]);
+  const [editingWindowId, setEditingWindowId] = useState(null);
+  const [tempPageName, setTempPageName] = useState('');
+  const [newPageName, setNewPageName] = useState('');
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -26,51 +30,196 @@ function WebBuilder() {
   const navigate = useNavigate();
 
   const serverProjectURL = process.env.REACT_APP_SERVER_PROJECT;
+  const serverPageURL = process.env.REACT_APP_SERVER_PAGE;
 
   // Function to handle project creation
   const handleCreateProject = async (e) => {
     e.preventDefault();
+
+    // Check if projectName is empty before making the request
+    if (!projectName.trim()) {
+      alert("Project name cannot be empty");
+      return;
+    }
 
     try {
       const response = await fetch(`${serverProjectURL}/create-project`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`, // Assuming you store token in localStorage
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({ projectName }),
+        body: JSON.stringify({ name: projectName }),
       });
 
-      if (response.ok) {
-        const projectData = await response.json();
-        setWindows([{ id: 1, name: 'Page 1', widgets: [] }]); // Add default first window
-        setIsFormVisible(false); // Hide the form after creation
-        setProjectName(''); // Clear project name input
+      // Updated error handling inside handleCreateProject
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (jsonError) {
+          errorData = await response.text();
+        }
+        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        alert(`Failed to create project: ${errorMessage}`);
+        return;
+      }
+
+
+      const projectData = await response.json();
+      console.log('Project created successfully:', projectData);
+
+      // Set the current project name for ongoing operations
+      setCurrentProjectName(projectName);
+
+      // Add the default page to the project, passing projectName directly
+      const addPageResult = await addPageToProject(projectName, 'Page 1', 1);
+
+      if (addPageResult) {
+        // Clear the form inputs only if the page was added successfully
+        setWindows([{ id: 1, name: 'Page 1', widgets: [] }]);
+        setIsFormVisible(false);
+        setProjectName('');  // Still clear the input field
       } else {
-        console.error('Failed to create project');
+        console.error('Failed to add the default page.');
       }
     } catch (error) {
       console.error('Error creating project:', error);
+      alert('An unexpected error occurred while creating the project.');
+    }
+  };
+
+  // Make /add-page/ POST call to the backend to add a page
+  const addPageToProject = async (currentProjectName, pageName, position) => {
+    try {
+      const response = await fetch(`${serverPageURL}/add-page`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ projectName: currentProjectName, name: pageName, position }),
+      });
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (jsonError) {
+          errorData = await response.text();
+        }
+        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        alert(`Failed to create project: ${errorMessage}`);
+        return;
+      }
+
+      return await response.json(); // Assuming the API returns some relevant data
+    } catch (error) {
+      console.error('Error adding page:', error);
+      alert('An unexpected error occurred while adding the page.');
+      return null;
     }
   };
 
   // Adds a workspace window rectangle
-  const addWindow = (id) => {
-    const newWindow = { id: windows.length + 1, name: `Page ${windows.length + 1}`, widgets: [] };
-    const updatedWindows = windows.map(window =>
-      window.id === id ? { ...window, hasPlusButton: false } : window
-    );
-    setWindows([...updatedWindows, newWindow]);
+  const addWindow = async (id) => {
+    const newPageName = `Page ${windows.length + 1}`;
+    const newWindow = { id: windows.length + 1, name: newPageName, widgets: [] };
+
+    try {
+      // Use the existing addPageToProject function to handle the API call
+      const addPageResult = await addPageToProject(currentProjectName, newPageName, newWindow.id);
+
+      if (addPageResult) {
+        // If the page was successfully added, update the UI
+        const updatedWindows = windows.map(window =>
+          window.id === id ? { ...window, hasPlusButton: false } : window
+        );
+        setWindows([...updatedWindows, newWindow]);
+      } else {
+        console.error('Failed to add the new window.');
+      }
+    } catch (error) {
+      console.error('Error adding page:', error);
+      alert('An unexpected error occurred while adding the page.');
+    }
   };
 
-  // Removes a workspace window rectangle
-  const removeWindow = (id) => {
-    const remainingWindows = windows.filter(window => window.id !== id);
-    if (remainingWindows.length === 1) {
-      remainingWindows[0].hasPlusButton = true;
+  // Removes a workspace window rectangle and deletes the page from the database
+  const removeWindow = async (id, currentProjectName, windowName) => {
+    try {
+      // Make the API call to delete the page
+      const response = await fetch(`${serverPageURL}/delete-page`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ name: windowName, projectName: currentProjectName }),
+      });
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (jsonError) {
+          errorData = await response.text();
+        }
+        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        alert(`Failed to delete page: ${errorMessage}`);
+        return;
+      }
+
+      // Remove the window from the UI only if the page was successfully deleted from the database
+      const remainingWindows = windows.filter(window => window.id !== id);
+      if (remainingWindows.length === 1) {
+        remainingWindows[0].hasPlusButton = true;
+      }
+      setWindows(remainingWindows);
+
+    } catch (error) {
+      console.error('Error deleting page:', error);
+      alert('An unexpected error occurred while deleting the page.');
     }
-    setWindows(remainingWindows);
   };
+
+  const handlePageNameChange = async (windowId, oldName, newName) => {
+    try {
+      // Make an API call to update the page name
+      const response = await fetch(`${serverPageURL}/update-page`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ name: oldName, projectName: currentProjectName, newName: newName }),
+      });
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (jsonError) {
+          errorData = await response.text();
+        }
+        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        alert(`Failed to update page: ${errorMessage}`);
+        return;
+      }
+
+      // If the API call was successful, update the window name in the state
+      const updatedWindows = windows.map(window =>
+        window.id === windowId ? { ...window, name: newName } : window
+      );
+      setWindows(updatedWindows);
+      alert('Page name updated successfully.');
+    } catch (error) {
+      console.error('Error updating page name:', error);
+      alert('An unexpected error occurred while updating the page name.');
+    }
+  };
+
+
 
   // Widget drag 
   const handleOnDrag = (e, widgetType) => {
@@ -108,14 +257,6 @@ function WebBuilder() {
       window.id === windowId
         ? { ...window, widgets: window.widgets.filter(widget => widget.id !== widgetId) }
         : window
-    );
-    setWindows(updatedWindows);
-  };
-
-  // Handle Page Name Change
-  const handlePageNameChange = (windowId, newName) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId ? { ...window, name: newName } : window
     );
     setWindows(updatedWindows);
   };
@@ -264,12 +405,48 @@ function WebBuilder() {
         {windows.length > 0 &&
           windows.map((window) => (
             <div key={window.id} className="workspace-window">
-              <input
-                type="text"
-                className="page-name-input"
-                value={window.name}
-                onChange={(e) => handlePageNameChange(window.id, e.target.value)}
-              />
+              {editingWindowId === window.id ? (
+                <div className="editing-page-name">
+                  <input
+                    type="text"
+                    className="page-name-input"
+                    value={tempPageName}
+                    onChange={(e) => setTempPageName(e.target.value)}
+                  />
+                  <button
+                    className="button submit-button"
+                    onClick={() => {
+                      handlePageNameChange(window.id, window.name, tempPageName);
+                      setEditingWindowId(null);
+                    }}
+                  >
+                    Submit
+                  </button>
+                  <button
+                    className="button cancel-button"
+                    onClick={() => {
+                      setEditingWindowId(null);
+                      setTempPageName(window.name);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="page-name-display">
+                  <span>{window.name}</span>
+                  <button
+                    className="edit-button"
+                    onClick={() => {
+                      setEditingWindowId(window.id);
+                      setTempPageName(window.name);
+                    }}
+                  >
+                    Edit
+                  </button>
+                </div>
+              )}
+
               <div className="rectangle-container">
                 <div
                   className="rectangle"
@@ -321,7 +498,7 @@ function WebBuilder() {
                     src={trashcan}
                     alt="Remove Window"
                     className="trashcan-button"
-                    onClick={() => removeWindow(window.id)}
+                    onClick={() => removeWindow(window.id, currentProjectName, window.name)}
                   />
                 )}
               </div>
@@ -368,10 +545,10 @@ function WebBuilder() {
           </>
         )}
         {windows.length > 0 && (
-        <button className="generate-prompt-button" onClick={debugGenerateWebsitePrompt}>
-          Generate Website Prompt
-        </button>
-      )}
+          <button className="generate-prompt-button" onClick={debugGenerateWebsitePrompt}>
+            Generate Website Prompt
+          </button>
+        )}
         {generatedWebsite && (
           <div className="generated-website">
             <h3>Generated Website:</h3>
@@ -382,5 +559,4 @@ function WebBuilder() {
     </div>
   );
 }
-
 export default WebBuilder;

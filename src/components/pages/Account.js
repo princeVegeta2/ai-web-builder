@@ -19,7 +19,8 @@ function Account() {
         try {
           const usernameResponse = await fetch(`${serverUserURL}/get-username`, {
             method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` },
+            method: 'GET',
+            headers: { Authorization: `Bearer ${token}` },
           });
           const usernameData = await usernameResponse.json();
           if (usernameResponse.ok) {
@@ -35,7 +36,7 @@ function Account() {
         try {
           const emailResponse = await fetch(`${serverUserURL}/get-email`, {
             method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}` },
           });
           const emailData = await emailResponse.json();
           if (emailResponse.ok) {
@@ -51,11 +52,11 @@ function Account() {
         try {
           const accessResponse = await fetch(`${serverUserURL}/check-builder-access`, {
             method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}` },
           });
           const accessData = await accessResponse.json();
           if (accessResponse.ok) {
-            setBuilderAccess(accessData.builder_access ? 'Yes' : 'No');
+            setBuilderAccess(accessData.builderAccess ? 'Yes' : 'No');
           } else {
             alert('Failed to fetch WebBuilder access status.');
           }

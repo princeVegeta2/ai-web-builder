@@ -110,6 +110,46 @@
   padding: 10px;
 }
 
+.button {
+  padding: 5px 10px;
+  border: none;
+  background-color: #747266;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-left: 5px;
+}
+
+.button:hover {
+  background-color: #5a5748;
+}
+
+/* Additional styles for the cancel button to differentiate it slightly */
+.cancel-button {
+  background-color: #d9534f;
+}
+
+.cancel-button:hover {
+  background-color: #c9302c;
+}
+
+/* Add styles for the edit button to make it consistent */
+.edit-button {
+  padding: 5px 15px;
+  border: none;
+  background-color: #747266;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-left: 5px;
+  font-weight: bold;
+  margin-bottom: 20px
+}
+
+.edit-button:hover {
+  background-color: #5a5748;
+}
+
 .page-name-input {
   width: 50%;
   padding: 10px;
