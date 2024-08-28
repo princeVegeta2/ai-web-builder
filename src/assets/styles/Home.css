@@ -75,7 +75,6 @@
   background-color: #605e50;
 }
 
-
 form {
   display: flex;
   flex-direction: column;
@@ -129,6 +128,25 @@ form {
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+
+/* Styles for the stay signed in checkbox */
+.stay-signed-in {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.stay-signed-in input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.stay-signed-in label {
+  font-size: 1rem;
+  color: #747266;
 }
 
 @media (max-width: 768px) {

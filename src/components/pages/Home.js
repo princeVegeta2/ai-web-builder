@@ -6,7 +6,7 @@ import accountImage from '../../assets/images/user.png';
 
 function Home() {
   const [showSignUp, setShowSignUp] = useState(false);
-  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', staySignedIn: false });
   const [username, setUsername] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const { login, isAuthenticated, logout } = useAuth();
@@ -23,9 +23,14 @@ function Home() {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await response.json();
+
         if (response.ok) {
-          setUsername(data.username);
+          const data = await response.json().catch(() => null); // Safely parse JSON
+          if (data && data.username) {
+            setUsername(data.username);
+          } else {
+            alert('Failed to fetch username.');
+          }
         } else {
           alert('Failed to fetch username.');
         }
@@ -60,7 +65,11 @@ function Home() {
       const response = await fetch(`${serverAuthURL}/signin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, password: formData.password }),
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          staySignedIn: formData.staySignedIn, // Include the staySignedIn flag
+        }),
       });
       const data = await response.json();
       if (response.ok) {
@@ -152,6 +161,15 @@ function Home() {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
               />
+              <div className="stay-signed-in">
+                <input
+                  type="checkbox"
+                  id="staySignedIn"
+                  checked={formData.staySignedIn}
+                  onChange={(e) => setFormData({ ...formData, staySignedIn: e.target.checked })}
+                />
+                <label htmlFor="staySignedIn">Stay signed in</label>
+              </div>
               <button className="submit-button" type="submit">Sign In</button>
               <button type="button" className="inactive-button" onClick={() => setShowSignUp(true)}>Sign Up</button>
             </form>

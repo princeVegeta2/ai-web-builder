@@ -1,19 +1,28 @@
-// src/components/common/AuthContext.js
-
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { isTokenExpired } from '../../utils/tokenUtils';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token && !isTokenExpired(token)) {
+      setIsAuthenticated(true);
+    } else {
+      localStorage.removeItem('token');
+      setIsAuthenticated(false);
+    }
+  }, []);
+
   const login = (token) => {
-    localStorage.setItem('token', token); // Store the token in local storage
+    localStorage.setItem('token', token);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
-    localStorage.removeItem('token'); // Remove the token from local storage
+    localStorage.removeItem('token');
     setIsAuthenticated(false);
   };
 
