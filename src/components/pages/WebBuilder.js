@@ -21,6 +21,8 @@ import generatePrompt, { generateAndSendPrompt } from '../common/PromptGenerator
 function WebBuilder() {
   const serverProjectURL = process.env.REACT_APP_SERVER_PROJECT;
   const serverPageURL = process.env.REACT_APP_SERVER_PAGE;
+  const serverWidgetURL = process.env.REACT_APP_SERVER_WIDGET;
+  const serverModalUrl = process.env.REACT_APP_SERVER_MODAL;
 
   const { projectName, setProjectName, currentProjectName, handleCreateProject } = useProjectManager(serverProjectURL, serverPageURL);
   const { openModal, closeModal, isModalOpen } = useModalManager();
@@ -78,7 +80,7 @@ function WebBuilder() {
         return 'Colors';
       case 'link':
         return 'Links';
-      case 'image':
+      case 'image-link':
         return 'Images';
       case 'prompt':
         return 'Prompt';
@@ -89,10 +91,11 @@ function WebBuilder() {
 
   const handleAddModal = (windowId, widgetId, modalType) => {
     if (modalType) {
-      addWidgetModal(windowId, widgetId, modalType, windows, setWindows);
+      addWidgetModal(windowId, widgetId, modalType, windows, setWindows, currentProjectName, serverModalUrl);
       setActiveDropdown(null); // Hide dropdown after selection
     }
   };
+  
 
   const handleRemoveModal = (windowId, widgetId, modalType) => {
     removeWidgetModal(windowId, widgetId, modalType, windows, setWindows);
@@ -108,7 +111,7 @@ function WebBuilder() {
         return colors;
       case 'link':
         return linkIcon;
-      case 'image':
+      case 'image-link':
         return imageIcon;
       case 'prompt':
         return promptIcon;
@@ -205,7 +208,7 @@ function WebBuilder() {
               <div className="rectangle-container">
                 <div
                   className="rectangle"
-                  onDrop={(e) => handleOnDrop(e, window.id, windows, setWindows)}
+                  onDrop={(e) => handleOnDrop(e, window.id, windows, setWindows, currentProjectName, serverWidgetURL)}
                   onDragOver={handleDragOver}
                 >
                   {window.widgets.map((widget) => (
@@ -216,7 +219,7 @@ function WebBuilder() {
                           src={trashcan}
                           alt="Remove Widget"
                           className="widget-trashcan-button"
-                          onClick={() => removeWidget(window.id, widget.id, windows, setWindows)}
+                          onClick={() => removeWidget(window.id, widget.id, windows, setWindows, currentProjectName, serverWidgetURL)}
                         />
                       </div>
                       <div className="component-actions">
@@ -235,7 +238,7 @@ function WebBuilder() {
                             <option value="">Select Modal</option>
                             <option value="color">Colors</option>
                             <option value="link">Links</option>
-                            <option value="image">Images</option>
+                            <option value="image-link">Images</option>
                             <option value="prompt">Prompt</option>
                           </select>
                         )}
