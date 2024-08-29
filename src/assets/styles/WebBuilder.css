@@ -202,6 +202,87 @@
   right: 5px;
 }
 
+
+.add-modal-button {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.modal-dropdown {
+  padding: 5px;
+  margin-left: 10px;
+  border: 1px solid #747266;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.add-modal-confirm {
+  padding: 5px 10px;
+  background-color: #747266;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.add-modal-confirm:hover {
+  background-color: #5a5748;
+}
+
+.added-modals {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.modal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 160px; /* Adjusted width to accommodate the trashcan button */
+  height: 50px;
+  background-color: #efede3;
+  border: 1px solid #747266;
+  border-radius: 4px;
+  position: relative;
+  padding: 0 5px; /* Added padding to ensure the content doesn't touch the borders */
+}
+
+.modal-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 130px; /* Reduced width to make room for the trashcan button */
+  height: 100%;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  text-align: left; /* Align the text and icon to the left */
+  padding: 0;
+}
+
+.modal-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
+
+.modal-title {
+  font-weight: bold; /* Make the title bold */
+  flex-grow: 1;
+}
+
+.modal-trashcan-button {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  margin-left: 5px; /* Space between the trashcan and the modal button */
+}
+
+
 .colors-section {
   margin-top: 10px;
 }

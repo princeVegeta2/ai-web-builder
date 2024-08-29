@@ -15,7 +15,7 @@ const LinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => {
           ...window,
           widgets: window.widgets.map(widget =>
             widget.id === widgetId
-              ? { ...widget, links: [...widget.links, { id: Date.now(), name: '', url: '' }] }
+              ? { ...widget, links: [...(widget.links || []), { id: Date.now(), name: '', url: '' }] }
               : widget
           )
         }
@@ -31,7 +31,7 @@ const LinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => {
           ...window,
           widgets: window.widgets.map(widget =>
             widget.id === widgetId
-              ? { ...widget, links: widget.links.filter(link => link.id !== linkId) }
+              ? { ...widget, links: (widget.links || []).filter(link => link.id !== linkId) }
               : widget
           )
         }
@@ -49,7 +49,7 @@ const LinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => {
             widget.id === widgetId
               ? {
                 ...widget,
-                links: widget.links.map(link =>
+                links: (widget.links || []).map(link =>
                   link.id === linkId ? { ...link, [field]: value } : link
                 )
               }
@@ -63,12 +63,12 @@ const LinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => {
 
   const closeLinkModal = () => {
     onClose();
-    const widget = windows.find(w => w.id === windowId).widgets.find(w => w.id === widgetId);
-    const linkValues = widget.links.map(link => ({ name: link.name, url: link.url }));
+    const widget = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId);
+    const linkValues = widget?.links?.map(link => ({ name: link.name, url: link.url })) || [];
     console.log('Links:', linkValues);
   };
 
-  const links = windows.find(w => w.id === windowId).widgets.find(w => w.id === widgetId).links;
+  const links = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId)?.links || [];
 
   return (
     <div className="link-modal-overlay">
@@ -113,6 +113,14 @@ const LinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => {
               )}
             </div>
           ))}
+          {links.length === 0 && (
+            <img
+              src={plusSymbol}
+              alt="Add Link"
+              className="add-link-button"
+              onClick={addLinkInput}
+            />
+          )}
         </div>
       </div>
     </div>

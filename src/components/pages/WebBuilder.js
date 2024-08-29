@@ -1,9 +1,8 @@
-// src/components/pages/WebBuilder.js
-import { React, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useProjectManager from '../../utils/projectManager';
 import { addPageToProject, removeWindow, handlePageNameChange } from '../../utils/pageManager';
-import { handleOnDrag, handleOnDrop, removeWidget, handleDragOver } from '../../utils/widgetManager';
+import { handleOnDrag, handleOnDrop, removeWidget, handleDragOver, addWidgetModal, removeWidgetModal } from '../../utils/widgetManager';
 import useModalManager from '../../utils/modalManager';
 import '../../assets/styles/WebBuilder.css';
 import plusSymbol from '../../assets/images/plus-symbol.png';
@@ -18,23 +17,25 @@ import ImageModal from '../common/ImageModal';
 import PromptModal from '../common/PromptModal';
 import generatePrompt, { generateAndSendPrompt } from '../common/PromptGenerator';
 
+
 function WebBuilder() {
   const serverProjectURL = process.env.REACT_APP_SERVER_PROJECT;
   const serverPageURL = process.env.REACT_APP_SERVER_PAGE;
 
   const { projectName, setProjectName, currentProjectName, handleCreateProject } = useProjectManager(serverProjectURL, serverPageURL);
-  const { isColorModalOpen, isLinkModalOpen, isImageModalOpen, isPromptModalOpen, currentWidget, openModal, closeModal } = useModalManager();
+  const { openModal, closeModal, isModalOpen } = useModalManager();
   const [windows, setWindows] = useState([]);
   const [editingWindowId, setEditingWindowId] = useState(null);
   const [tempPageName, setTempPageName] = useState('');
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [generatedWebsite, setGeneratedWebsite] = useState(null);
+  const [activeDropdown, setActiveDropdown] = useState(null); // New state for dropdown visibility
   const navigate = useNavigate();
 
   const addWindow = async (id) => {
     const newPageName = `Page ${windows.length + 1}`;
     const newWindow = { id: windows.length + 1, name: newPageName, widgets: [] };
-    const addPageResult = await addPageToProject(process.env.REACT_APP_SERVER_PAGE, currentProjectName, newPageName, newWindow.id);
+    const addPageResult = await addPageToProject(serverPageURL, currentProjectName, newPageName, newWindow.id);
 
     if (addPageResult) {
       const updatedWindows = windows.map(window =>
@@ -70,6 +71,51 @@ function WebBuilder() {
     { name: 'Section' },
     { name: 'Card' },
   ];
+
+  const getModalDisplayName = (modalType) => {
+    switch (modalType) {
+      case 'color':
+        return 'Colors';
+      case 'link':
+        return 'Links';
+      case 'image':
+        return 'Images';
+      case 'prompt':
+        return 'Prompt';
+      default:
+        return modalType;
+    }
+  };
+
+  const handleAddModal = (windowId, widgetId, modalType) => {
+    if (modalType) {
+      addWidgetModal(windowId, widgetId, modalType, windows, setWindows);
+      setActiveDropdown(null); // Hide dropdown after selection
+    }
+  };
+
+  const handleRemoveModal = (windowId, widgetId, modalType) => {
+    removeWidgetModal(windowId, widgetId, modalType, windows, setWindows);
+  };
+
+  const toggleDropdown = (widgetId) => {
+    setActiveDropdown(activeDropdown === widgetId ? null : widgetId); // Toggle dropdown visibility
+  };
+
+  const getModalIcon = (modalType) => {
+    switch (modalType) {
+      case 'color':
+        return colors;
+      case 'link':
+        return linkIcon;
+      case 'image':
+        return imageIcon;
+      case 'prompt':
+        return promptIcon;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="webbuilder-container">
@@ -125,7 +171,7 @@ function WebBuilder() {
                   <button
                     className="button submit-button"
                     onClick={() => {
-                      handlePageNameChange(process.env.REACT_APP_SERVER_PAGE, window.id, window.name, tempPageName, currentProjectName, windows, setWindows);
+                      handlePageNameChange(serverPageURL, window.id, window.name, tempPageName, currentProjectName, windows, setWindows);
                       setEditingWindowId(null);
                     }}
                   >
@@ -174,30 +220,44 @@ function WebBuilder() {
                         />
                       </div>
                       <div className="component-actions">
-                        <button
-                          className="colors-button"
-                          onClick={() => openModal('color', window.id, widget.id)}
-                        >
-                          <img src={colors} alt="Colors" className="colors-icon" /> Colors
-                        </button>
-                        <button
-                          className="links-button"
-                          onClick={() => openModal('link', window.id, widget.id)}
-                        >
-                          <img src={linkIcon} alt="Links" className="links-icon" /> Links
-                        </button>
-                        <button
-                          className="images-button"
-                          onClick={() => openModal('image', window.id, widget.id)}
-                        >
-                          <img src={imageIcon} alt="Images" className="images-icon" /> Images
-                        </button>
-                        <button
-                          className="prompt-button"
-                          onClick={() => openModal('prompt', window.id, widget.id)}
-                        >
-                          <img src={promptIcon} alt="Prompt" className="prompt-icon" /> Prompt
-                        </button>
+                        <img
+                          src={plusSymbol}
+                          alt="Add Modal"
+                          className="add-modal-button"
+                          onClick={() => toggleDropdown(widget.id)}
+                        />
+                        {activeDropdown === widget.id && (
+                          <select
+                            value=""
+                            onChange={(e) => handleAddModal(window.id, widget.id, e.target.value)}
+                            className="modal-dropdown"
+                          >
+                            <option value="">Select Modal</option>
+                            <option value="color">Colors</option>
+                            <option value="link">Links</option>
+                            <option value="image">Images</option>
+                            <option value="prompt">Prompt</option>
+                          </select>
+                        )}
+                      </div>
+                      <div className="added-modals">
+                        {widget.modals.map((modalType, index) => (
+                          <div key={index} className="modal-item">
+                            <button
+                              className="modal-button"
+                              onClick={() => openModal(modalType, window.id, widget.id)}
+                            >
+                              <img src={getModalIcon(modalType)} alt={`${modalType} icon`} className="modal-icon" />
+                              <span className="modal-title">{getModalDisplayName(modalType)}</span>
+                            </button>
+                            <img
+                              src={trashcan}
+                              alt="Remove Modal"
+                              className="modal-trashcan-button"
+                              onClick={() => handleRemoveModal(window.id, widget.id, modalType)}
+                            />
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -207,7 +267,7 @@ function WebBuilder() {
                     src={trashcan}
                     alt="Remove Window"
                     className="trashcan-button"
-                    onClick={() => removeWindow(process.env.REACT_APP_SERVER_PAGE, window.id, currentProjectName, window.name, windows, setWindows)}
+                    onClick={() => removeWindow(serverPageURL, window.id, currentProjectName, window.name, windows, setWindows)}
                   />
                 )}
               </div>
@@ -221,37 +281,59 @@ function WebBuilder() {
               )}
             </div>
           ))}
-        {currentWidget && (
-          <>
-            <ColorModal
-              isOpen={isColorModalOpen}
-              onClose={() => closeModal('color')}
-              windows={windows}
-              setWindows={setWindows}
-              currentWidget={currentWidget}
-            />
-            <LinkModal
-              isOpen={isLinkModalOpen}
-              onClose={() => closeModal('link')}
-              windows={windows}
-              setWindows={setWindows}
-              currentWidget={currentWidget}
-            />
-            <ImageModal
-              isOpen={isImageModalOpen}
-              onClose={() => closeModal('image')}
-              windows={windows}
-              setWindows={setWindows}
-              currentWidget={currentWidget}
-            />
-            <PromptModal
-              isOpen={isPromptModalOpen}
-              onClose={() => closeModal('prompt')}
-              windows={windows}
-              setWindows={setWindows}
-              currentWidget={currentWidget}
-            />
-          </>
+        {windows.map((window) =>
+          window.widgets.map((widget) =>
+            widget.modals.map((modalType) => {
+              switch (modalType) {
+                case 'color':
+                  return (
+                    <ColorModal
+                      key={`${window.id}-${widget.id}-${modalType}`}
+                      isOpen={isModalOpen(modalType, window.id, widget.id)}
+                      onClose={() => closeModal(modalType, window.id, widget.id)}
+                      windows={windows}
+                      setWindows={setWindows}
+                      currentWidget={{ windowId: window.id, widgetId: widget.id }}
+                    />
+                  );
+                case 'link':
+                  return (
+                    <LinkModal
+                      key={`${window.id}-${widget.id}-${modalType}`}
+                      isOpen={isModalOpen(modalType, window.id, widget.id)}
+                      onClose={() => closeModal(modalType, window.id, widget.id)}
+                      windows={windows}
+                      setWindows={setWindows}
+                      currentWidget={{ windowId: window.id, widgetId: widget.id }}
+                    />
+                  );
+                case 'image':
+                  return (
+                    <ImageModal
+                      key={`${window.id}-${widget.id}-${modalType}`}
+                      isOpen={isModalOpen(modalType, window.id, widget.id)}
+                      onClose={() => closeModal(modalType, window.id, widget.id)}
+                      windows={windows}
+                      setWindows={setWindows}
+                      currentWidget={{ windowId: window.id, widgetId: widget.id }}
+                    />
+                  );
+                case 'prompt':
+                  return (
+                    <PromptModal
+                      key={`${window.id}-${widget.id}-${modalType}`}
+                      isOpen={isModalOpen(modalType, window.id, widget.id)}
+                      onClose={() => closeModal(modalType, window.id, widget.id)}
+                      windows={windows}
+                      setWindows={setWindows}
+                      currentWidget={{ windowId: window.id, widgetId: widget.id }}
+                    />
+                  );
+                default:
+                  return null;
+              }
+            })
+          )
         )}
         {windows.length > 0 && (
           <button className="generate-prompt-button" onClick={debugGenerateWebsitePrompt}>

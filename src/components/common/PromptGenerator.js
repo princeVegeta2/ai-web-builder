@@ -32,7 +32,7 @@ const generatePrompt = (windows) => {
   You might also be asked for additional functionality/specifications for each section.
   `;
 
-  windows.forEach((window, windowIndex) => {
+  windows.forEach((window) => {
     prompt += `Page name: ${window.name}:\n`;
 
     window.widgets.forEach((widget, widgetIndex) => {
@@ -40,19 +40,22 @@ const generatePrompt = (windows) => {
 
       let subPrompt = `For the ${widget.type.toLowerCase()} of this page`;
 
-      if (widget.colors.length > 0) {
+      // Safely handle the case where any of these properties might be undefined
+      if (widget.colors && widget.colors.length > 0) {
         subPrompt += `, use these colors: ${widget.colors.map(color => color.value).join(', ')}`;
+      } else {
+        subPrompt += `, use the default color: #fff`;
       }
 
-      if (widget.links.length > 0) {
+      if (widget.links && widget.links.length > 0) {
         subPrompt += `, and these links: ${widget.links.map(link => `${link.name} (${link.url})`).join(', ')}`;
       }
 
-      if (widget.images.length > 0) {
+      if (widget.images && widget.images.length > 0) {
         subPrompt += `, and include these images: ${widget.images.map(image => image.value).join(', ')}`;
       }
 
-      if (widget.promptString) {
+      if (widget.promptString && widget.promptString.trim() !== '') {
         subPrompt += `. Additionally: ${widget.promptString}`;
       }
 

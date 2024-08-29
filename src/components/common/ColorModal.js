@@ -15,7 +15,7 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
           ...window,
           widgets: window.widgets.map(widget =>
             widget.id === widgetId
-              ? { ...widget, colors: [...widget.colors, { id: Date.now(), value: '' }] }
+              ? { ...widget, colors: [...(widget.colors || []), { id: Date.now(), value: '' }] }
               : widget
           )
         }
@@ -31,7 +31,7 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
           ...window,
           widgets: window.widgets.map(widget =>
             widget.id === widgetId
-              ? { ...widget, colors: widget.colors.filter(color => color.id !== colorId) }
+              ? { ...widget, colors: (widget.colors || []).filter(color => color.id !== colorId) }
               : widget
           )
         }
@@ -49,7 +49,7 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
             widget.id === widgetId
               ? {
                 ...widget,
-                colors: widget.colors.map(color =>
+                colors: (widget.colors || []).map(color =>
                   color.id === colorId ? { ...color, value } : color
                 )
               }
@@ -63,12 +63,12 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
 
   const closeColorModal = () => {
     onClose();
-    const widget = windows.find(w => w.id === windowId).widgets.find(w => w.id === widgetId);
-    const colorValues = widget.colors.map(color => color.value);
+    const widget = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId);
+    const colorValues = widget?.colors?.map(color => color.value) || [];
     console.log('Colors:', colorValues);
   };
 
-  const colors = windows.find(w => w.id === windowId).widgets.find(w => w.id === widgetId).colors;
+  const colors = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId)?.colors || [];
 
   return (
     <div className="color-modal-overlay">
@@ -106,6 +106,14 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
               )}
             </div>
           ))}
+          {colors.length === 0 && (
+            <img
+              src={plusSymbol}
+              alt="Add Color"
+              className="add-color-button"
+              onClick={addColorInput}
+            />
+          )}
         </div>
       </div>
     </div>

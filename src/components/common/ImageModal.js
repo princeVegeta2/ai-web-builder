@@ -1,4 +1,3 @@
-// File: components/common/ImageModal.js
 import React from 'react';
 import plusSymbol from '../../assets/images/plus-symbol.png';
 import trashcan from '../../assets/images/trashcan.png';
@@ -16,7 +15,7 @@ const ImageModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
           ...window,
           widgets: window.widgets.map(widget =>
             widget.id === widgetId
-              ? { ...widget, images: [...widget.images, { id: Date.now(), value: '' }] }
+              ? { ...widget, images: [...(widget.images || []), { id: Date.now(), value: '' }] }
               : widget
           )
         }
@@ -32,7 +31,7 @@ const ImageModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
           ...window,
           widgets: window.widgets.map(widget =>
             widget.id === widgetId
-              ? { ...widget, images: widget.images.filter(image => image.id !== imageId) }
+              ? { ...widget, images: (widget.images || []).filter(image => image.id !== imageId) }
               : widget
           )
         }
@@ -50,7 +49,7 @@ const ImageModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
             widget.id === widgetId
               ? {
                 ...widget,
-                images: widget.images.map(image =>
+                images: (widget.images || []).map(image =>
                   image.id === imageId ? { ...image, value } : image
                 )
               }
@@ -64,12 +63,12 @@ const ImageModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
 
   const closeImageModal = () => {
     onClose();
-    const widget = windows.find(w => w.id === windowId).widgets.find(w => w.id === widgetId);
-    const imageValues = widget.images.map(image => image.value);
+    const widget = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId);
+    const imageValues = widget?.images?.map(image => image.value) || [];
     console.log('Images:', imageValues);
   };
 
-  const images = windows.find(w => w.id === windowId).widgets.find(w => w.id === widgetId).images;
+  const images = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId)?.images || [];
 
   return (
     <div className="image-modal-overlay">
@@ -107,6 +106,14 @@ const ImageModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
               )}
             </div>
           ))}
+          {images.length === 0 && (
+            <img
+              src={plusSymbol}
+              alt="Add Image"
+              className="add-image-button"
+              onClick={addImageInput}
+            />
+          )}
         </div>
       </div>
     </div>
