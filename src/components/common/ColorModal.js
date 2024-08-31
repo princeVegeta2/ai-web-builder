@@ -3,7 +3,7 @@ import plusSymbol from '../../assets/images/plus-symbol.png';
 import '../../assets/styles/ColorModal.css';
 import trashcan from '../../assets/images/trashcan.png';
 
-const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => {
+const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, currentProjectName, serverModalValuesURL }) => {
   if (!isOpen) return null;
 
   const { windowId, widgetId } = currentWidget;
@@ -12,13 +12,16 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
     const updatedWindows = windows.map(window =>
       window.id === windowId
         ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? { ...widget, colors: [...(widget.colors || []), { id: Date.now(), value: '' }] }
-              : widget
-          )
-        }
+            ...window,
+            widgets: window.widgets.map(widget =>
+              widget.id === widgetId
+                ? { 
+                    ...widget, 
+                    colors: [...(widget.colors || []), { id: Date.now(), value: '', isChanged: true, isEditing: true, originalValue: '' }] 
+                  }
+                : widget
+            )
+          }
         : window
     );
     setWindows(updatedWindows);
@@ -28,13 +31,16 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
     const updatedWindows = windows.map(window =>
       window.id === windowId
         ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? { ...widget, colors: (widget.colors || []).filter(color => color.id !== colorId) }
-              : widget
-          )
-        }
+            ...window,
+            widgets: window.widgets.map(widget =>
+              widget.id === widgetId
+                ? { 
+                    ...widget, 
+                    colors: (widget.colors || []).filter(color => color.id !== colorId) 
+                  }
+                : widget
+            )
+          }
         : window
     );
     setWindows(updatedWindows);
@@ -44,31 +50,164 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
     const updatedWindows = windows.map(window =>
       window.id === windowId
         ? {
-          ...window,
-          widgets: window.widgets.map(widget =>
-            widget.id === widgetId
-              ? {
-                ...widget,
-                colors: (widget.colors || []).map(color =>
-                  color.id === colorId ? { ...color, value } : color
-                )
-              }
-              : widget
-          )
-        }
+            ...window,
+            widgets: window.widgets.map(widget =>
+              widget.id === widgetId
+                ? {
+                    ...widget,
+                    colors: (widget.colors || []).map(color =>
+                      color.id === colorId 
+                        ? { ...color, value: value || '', isChanged: true } 
+                        : color
+                    )
+                  }
+                : widget
+            )
+          }
         : window
     );
+
+    console.log('Updated Colors:', updatedWindows); // Debugging the state update
     setWindows(updatedWindows);
   };
 
-  const closeColorModal = () => {
-    onClose();
+  const handleSaveColor = async (colorId) => {
     const widget = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId);
-    const colorValues = widget?.colors?.map(color => color.value) || [];
-    console.log('Colors:', colorValues);
+    const colors = widget?.colors || [];
+    const colorToSave = colors.find(color => color.id === colorId);
+
+    if (!colorToSave || !colorToSave.value?.trim()) {  // Ensure value is defined and trimmed
+      alert('Color value cannot be empty.');
+      return;
+    }
+
+    // Check for duplicates across other inputs (case-insensitive)
+    const duplicate = colors.find(color => 
+      color.id !== colorId && color.value?.trim().toLowerCase() === colorToSave.value.trim().toLowerCase()
+    );
+
+    if (duplicate) {
+      alert('This color already exists in another input.');
+      return;
+    }
+
+    const widgetIndex = windows.find(w => w.id === windowId)?.widgets.findIndex(widget => widget.id === widgetId) + 1;
+    const pageName = windows.find(w => w.id === windowId)?.name;
+
+    if (!widget || !pageName || widgetIndex < 0 || !currentProjectName) {
+      console.error('Error retrieving widget, page information, or project name.');
+      return;
+    }
+
+    const payload = {
+      position: colors.indexOf(colorToSave) + 1,
+      color: colorToSave.value.trim(),
+      projectName: currentProjectName,
+      pageName: pageName,
+      modalType: 'color',
+      widgetPosition: widgetIndex,
+    };
+
+    try {
+      const response = await fetch(`${serverModalValuesURL}/add-color/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        alert(`Failed to add color: ${errorMessage}`);
+        return;
+      }
+
+      // If save is successful, mark the color as saved and disable editing
+      const updatedWindows = windows.map(window =>
+        window.id === windowId
+          ? {
+              ...window,
+              widgets: window.widgets.map(widget =>
+                widget.id === widgetId
+                  ? {
+                      ...widget,
+                      colors: widget.colors.map(color =>
+                        color.id === colorId ? { ...color, isChanged: false, isEditing: false, originalValue: color.value } : color
+                      )
+                    }
+                  : widget
+              )
+            }
+          : window
+      );
+
+      setWindows(updatedWindows);
+      console.log('Color saved:', colorToSave.value);
+      alert('Color saved successfully!');
+    } catch (error) {
+      console.error('Error adding color:', error);
+      alert('An unexpected error occurred while adding the color.');
+    }
+  };
+
+  const handleEditColor = (colorId) => {
+    const updatedWindows = windows.map(window =>
+      window.id === windowId
+        ? {
+            ...window,
+            widgets: window.widgets.map(widget =>
+              widget.id === widgetId
+                ? {
+                    ...widget,
+                    colors: widget.colors.map(color =>
+                      color.id === colorId ? { ...color, isEditing: true } : color
+                    )
+                  }
+                : widget
+            )
+          }
+        : window
+    );
+
+    setWindows(updatedWindows);
+  };
+
+  const handleCancelEdit = (colorId) => {
+    const updatedWindows = windows.map(window =>
+      window.id === windowId
+        ? {
+            ...window,
+            widgets: window.widgets.map(widget =>
+              widget.id === widgetId
+                ? {
+                    ...widget,
+                    colors: widget.colors.map(color =>
+                      color.id === colorId 
+                        ? { 
+                            ...color, 
+                            value: color.originalValue || '',  // Ensure value fallback
+                            isEditing: false 
+                          } 
+                        : color
+                    )
+                  }
+                : widget
+            )
+          }
+        : window
+    );
+
+    setWindows(updatedWindows);
   };
 
   const colors = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId)?.colors || [];
+
+  const closeColorModal = () => {
+    onClose();
+  };
 
   return (
     <div className="color-modal-overlay">
@@ -83,10 +222,35 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget }) => 
               <input
                 type="text"
                 className="color-input"
-                value={color.value}
+                value={color.value || ''}  // Ensure fallback for controlled component
                 onChange={(e) => handleColorChange(color.id, e.target.value)}
                 placeholder="Enter color (hex or RGB)"
+                disabled={!color.isEditing} // Disable input if not editing
               />
+              {color.isEditing ? (
+                <>
+                  <button
+                    className="save-color-button"
+                    onClick={() => handleSaveColor(color.id)}
+                    disabled={!color.isChanged}
+                  >
+                    Save
+                  </button>
+                  <button
+                    className="cancel-color-button"
+                    onClick={() => handleCancelEdit(color.id)}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="edit-color-button"
+                  onClick={() => handleEditColor(color.id)}
+                >
+                  Edit
+                </button>
+              )}
               {index === colors.length - 1 ? (
                 <img
                   src={plusSymbol}

@@ -64,7 +64,7 @@ export const handleOnDrop = async (e, windowId, windows, setWindows, currentProj
   };
   
 
-  export const addWidgetModal = async (windowId, widgetId, modalType, windows, setWindows, currentProjectName, serverModalUrl) => {
+  export const addWidgetModal = async (windowId, widgetId, modalType, windows, setWindows, currentProjectName, serverModalURL) => {
     const updatedWindows = windows.map(window => {
         if (window.id === windowId) {
             return {
@@ -125,7 +125,7 @@ export const handleOnDrop = async (e, windowId, windows, setWindows, currentProj
     };
   
     try {
-      const response = await fetch(`${serverModalUrl}/add-modal/`, {
+      const response = await fetch(`${serverModalURL}/add-modal/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -207,42 +207,96 @@ export const removeWidget = async (windowId, widgetId, windows, setWindows, curr
   };
   
 
-export const removeWidgetModal = (windowId, widgetId, modalType, windows, setWindows) => {
-  const updatedWindows = windows.map(window => {
-      if (window.id === windowId) {
-          return {
-              ...window,
-              widgets: window.widgets.map(widget => {
-                  if (widget.id === widgetId) {
-                      const updatedModals = widget.modals.filter(modal => modal !== modalType);
-                      const updatedWidget = { ...widget, modals: updatedModals };
-
-                      // Optionally, remove the associated data structure when the modal is removed
-                      switch (modalType) {
-                          case 'color':
-                              delete updatedWidget.colors;
-                              break;
-                          case 'link':
-                              delete updatedWidget.links;
-                              break;
-                          case 'image-link':
-                              delete updatedWidget.images;
-                              break;
-                          case 'prompt':
-                              delete updatedWidget.promptString;
-                              break;
-                      }
-
-                      return updatedWidget;
-                  }
-                  return widget;
-              }),
-          };
+  export const removeWidgetModal = async (windowId, widgetId, modalType, windows, setWindows, currentProjectName, serverModalURL) => {
+    const updatedWindows = windows.map(window => {
+        if (window.id === windowId) {
+            return {
+                ...window,
+                widgets: window.widgets.map(widget => {
+                    if (widget.id === widgetId) {
+                        const modalIndex = widget.modals.findIndex(modal => modal === modalType);
+  
+                        // Remove the modal from the widget
+                        const updatedModals = widget.modals.filter((modal, index) => index !== modalIndex);
+                        const updatedWidget = { ...widget, modals: updatedModals };
+  
+                        // Optionally, remove the associated data structure when the modal is removed
+                        switch (modalType) {
+                            case 'color':
+                                delete updatedWidget.colors;
+                                break;
+                            case 'link':
+                                delete updatedWidget.links;
+                                break;
+                            case 'image':
+                                delete updatedWidget.images;
+                                break;
+                            case 'prompt':
+                                delete updatedWidget.promptString;
+                                break;
+                        }
+  
+                        return updatedWidget;
+                    }
+                    return widget;
+                }),
+            };
+        }
+        return window;
+    });
+  
+    // Find the window and widget positions
+    const window = windows.find(w => w.id === windowId);
+    if (!window) {
+      console.error("Window not found for the given windowId");
+      return;
+    }
+  
+    const widgetIndex = window.widgets.findIndex(widget => widget.id === widgetId);
+    if (widgetIndex === -1) {
+      console.error("Widget not found for the given widgetId");
+      return;
+    }
+  
+    const modalIndex = window.widgets[widgetIndex].modals.findIndex(modal => modal === modalType);
+    const pageName = window.name;
+    const widgetPosition = widgetIndex + 1;
+  
+    // Create the payload for the DELETE request
+    const payload = {
+      position: modalIndex + 1,  // Adding 1 to make it 1-based index
+      widgetPosition: widgetPosition,
+      projectName: currentProjectName,
+      pageName: pageName,
+      type: modalType
+    };
+  
+    try {
+      const response = await fetch(`${serverModalURL}/delete-modal/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        alert(`Failed to delete modal: ${errorMessage}`);
+        return;
       }
-      return window;
-  });
-  setWindows(updatedWindows);
-};
+  
+      // If the server-side operation is successful, update the local state
+      setWindows(updatedWindows);
+  
+    } catch (error) {
+      console.error('Error deleting modal:', error);
+      alert('An unexpected error occurred while deleting the modal.');
+    }
+  };
+  
 
 export const handleDragOver = (e) => {
   e.preventDefault();

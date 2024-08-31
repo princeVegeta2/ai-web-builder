@@ -22,7 +22,9 @@ function WebBuilder() {
   const serverProjectURL = process.env.REACT_APP_SERVER_PROJECT;
   const serverPageURL = process.env.REACT_APP_SERVER_PAGE;
   const serverWidgetURL = process.env.REACT_APP_SERVER_WIDGET;
-  const serverModalUrl = process.env.REACT_APP_SERVER_MODAL;
+  const serverModalURL = process.env.REACT_APP_SERVER_MODAL;
+  const serverModalValuesURL = process.env.REACT_APP_SERVER_MODAL_VALUES;
+
 
   const { projectName, setProjectName, currentProjectName, handleCreateProject } = useProjectManager(serverProjectURL, serverPageURL);
   const { openModal, closeModal, isModalOpen } = useModalManager();
@@ -91,14 +93,14 @@ function WebBuilder() {
 
   const handleAddModal = (windowId, widgetId, modalType) => {
     if (modalType) {
-      addWidgetModal(windowId, widgetId, modalType, windows, setWindows, currentProjectName, serverModalUrl);
+      addWidgetModal(windowId, widgetId, modalType, windows, setWindows, currentProjectName, serverModalURL);
       setActiveDropdown(null); // Hide dropdown after selection
     }
   };
-  
+
 
   const handleRemoveModal = (windowId, widgetId, modalType) => {
-    removeWidgetModal(windowId, widgetId, modalType, windows, setWindows);
+    removeWidgetModal(windowId, widgetId, modalType, windows, setWindows, currentProjectName, serverModalURL);
   };
 
   const toggleDropdown = (widgetId) => {
@@ -297,6 +299,8 @@ function WebBuilder() {
                       windows={windows}
                       setWindows={setWindows}
                       currentWidget={{ windowId: window.id, widgetId: widget.id }}
+                      serverModalValuesURL={serverModalValuesURL}
+                      currentProjectName={currentProjectName}  
                     />
                   );
                 case 'link':
