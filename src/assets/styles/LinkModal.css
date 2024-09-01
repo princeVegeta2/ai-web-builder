@@ -64,4 +64,18 @@
     height: 20px;
     cursor: pointer;
   }
+
+  .save-link-button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #4CAF50; /* Green */
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .save-link-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
   

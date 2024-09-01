@@ -13,7 +13,7 @@ import imageIcon from '../../assets/images/image.png';
 import promptIcon from '../../assets/images/prompt.png';
 import ColorModal from '../common/ColorModal';
 import LinkModal from '../common/LinkModal';
-import ImageModal from '../common/ImageModal';
+import ImageLinkModal from '../common/ImageLinkModal';
 import PromptModal from '../common/PromptModal';
 import generatePrompt, { generateAndSendPrompt } from '../common/PromptGenerator';
 
@@ -83,7 +83,7 @@ function WebBuilder() {
       case 'link':
         return 'Links';
       case 'image-link':
-        return 'Images';
+        return 'Image links';
       case 'prompt':
         return 'Prompt';
       default:
@@ -240,7 +240,7 @@ function WebBuilder() {
                             <option value="">Select Modal</option>
                             <option value="color">Colors</option>
                             <option value="link">Links</option>
-                            <option value="image-link">Images</option>
+                            <option value="image-link">Image links</option>
                             <option value="prompt">Prompt</option>
                           </select>
                         )}
@@ -312,17 +312,21 @@ function WebBuilder() {
                       windows={windows}
                       setWindows={setWindows}
                       currentWidget={{ windowId: window.id, widgetId: widget.id }}
+                      serverModalValuesURL={serverModalValuesURL}
+                      currentProjectName={currentProjectName} 
                     />
                   );
-                case 'image':
+                case 'image-link':
                   return (
-                    <ImageModal
+                    <ImageLinkModal
                       key={`${window.id}-${widget.id}-${modalType}`}
                       isOpen={isModalOpen(modalType, window.id, widget.id)}
                       onClose={() => closeModal(modalType, window.id, widget.id)}
                       windows={windows}
                       setWindows={setWindows}
                       currentWidget={{ windowId: window.id, widgetId: widget.id }}
+                      serverModalValuesURL={serverModalValuesURL}
+                      currentProjectName={currentProjectName} 
                     />
                   );
                 case 'prompt':
@@ -334,6 +338,8 @@ function WebBuilder() {
                       windows={windows}
                       setWindows={setWindows}
                       currentWidget={{ windowId: window.id, widgetId: widget.id }}
+                      serverModalValuesURL={serverModalValuesURL}
+                      currentProjectName={currentProjectName} 
                     />
                   );
                 default:

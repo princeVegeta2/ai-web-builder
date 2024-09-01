@@ -75,30 +75,33 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curre
     const widget = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId);
     const colors = widget?.colors || [];
     const colorToSave = colors.find(color => color.id === colorId);
-
-    if (!colorToSave || !colorToSave.value?.trim()) {  // Ensure value is defined and trimmed
+  
+    if (!colorToSave || !colorToSave.value?.trim()) {
       alert('Color value cannot be empty.');
       return;
     }
-
+  
     // Check for duplicates across other inputs (case-insensitive)
     const duplicate = colors.find(color => 
       color.id !== colorId && color.value?.trim().toLowerCase() === colorToSave.value.trim().toLowerCase()
     );
-
+  
     if (duplicate) {
       alert('This color already exists in another input.');
       return;
     }
-
+  
     const widgetIndex = windows.find(w => w.id === windowId)?.widgets.findIndex(widget => widget.id === widgetId) + 1;
     const pageName = windows.find(w => w.id === windowId)?.name;
-
-    if (!widget || !pageName || widgetIndex < 0 || !currentProjectName) {
-      console.error('Error retrieving widget, page information, or project name.');
+  
+    // Find the modal position for this specific modal in the context of all modals attached to the widget
+    const modalPosition = widget.modals.indexOf('color') + 1;
+  
+    if (!widget || !pageName || widgetIndex < 0 || !currentProjectName || modalPosition < 0) {
+      console.error('Error retrieving widget, page information, modal position, or project name.');
       return;
     }
-
+  
     const payload = {
       position: colors.indexOf(colorToSave) + 1,
       color: colorToSave.value.trim(),
@@ -106,8 +109,11 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curre
       pageName: pageName,
       modalType: 'color',
       widgetPosition: widgetIndex,
+      modalPosition: modalPosition, // This is the correct position within all modals
     };
-
+  
+    console.log(`Input Position: ${payload.position}, Widget position: ${payload.widgetPosition}, Modal position: ${payload.modalPosition}, ProjectName: ${payload.projectName}, PageName: ${payload.pageName}`);
+  
     try {
       const response = await fetch(`${serverModalValuesURL}/add-color/`, {
         method: 'POST',
@@ -117,14 +123,19 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curre
         },
         body: JSON.stringify(payload),
       });
-
+  
       if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        } catch (e) {
+          errorMessage = await response.text();
+        }
         alert(`Failed to add color: ${errorMessage}`);
         return;
       }
-
+  
       // If save is successful, mark the color as saved and disable editing
       const updatedWindows = windows.map(window =>
         window.id === windowId
@@ -143,7 +154,7 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curre
             }
           : window
       );
-
+  
       setWindows(updatedWindows);
       console.log('Color saved:', colorToSave.value);
       alert('Color saved successfully!');
@@ -152,6 +163,10 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curre
       alert('An unexpected error occurred while adding the color.');
     }
   };
+  
+  
+  
+
 
   const handleEditColor = (colorId) => {
     const updatedWindows = windows.map(window =>

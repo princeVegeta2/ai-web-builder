@@ -81,8 +81,8 @@ export const handleOnDrop = async (e, windowId, windows, setWindows, currentProj
                             case 'link':
                                 updatedWidget.links = updatedWidget.links || [{ id: Date.now(), name: '', url: '' }];
                                 break;
-                            case 'image':
-                                updatedWidget.images = updatedWidget.images || [{ id: Date.now(), value: '' }];
+                            case 'image-link':
+                                updatedWidget.imageLinks = updatedWidget.imageLinks || [{ id: Date.now(), value: '' }];
                                 break;
                             case 'prompt':
                                 updatedWidget.promptString = updatedWidget.promptString || '';
@@ -123,6 +123,9 @@ export const handleOnDrop = async (e, windowId, windows, setWindows, currentProj
       pageName: pageName,
       type: modalType
     };
+
+    // Debug
+    console.log(`${payload.type} modal added. Position: ${payload.position}, Widget Position: ${payload.widgetPosition} `);
   
     try {
       const response = await fetch(`${serverModalURL}/add-modal/`, {
@@ -228,8 +231,8 @@ export const removeWidget = async (windowId, widgetId, windows, setWindows, curr
                             case 'link':
                                 delete updatedWidget.links;
                                 break;
-                            case 'image':
-                                delete updatedWidget.images;
+                            case 'image-link':
+                                delete updatedWidget.imageLinks;
                                 break;
                             case 'prompt':
                                 delete updatedWidget.promptString;
