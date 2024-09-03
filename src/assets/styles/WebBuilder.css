@@ -21,6 +21,56 @@
   margin-bottom: 1rem;
 }
 
+.create-project-button {
+  width: 100%;
+  padding: 10px;
+  font-size: 1em;
+  margin-bottom: 10px;
+  background-color: #fff;
+  color: #747266;
+  border: 1px solid #747266;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.load-project-button {
+  width: 100%;
+  padding: 10px;
+  font-size: 1em;
+  margin-bottom: 10px;
+  background-color: #fff;
+  color: #747266;
+  border: 1px solid #747266;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.load-project-dropdown {
+  margin: 20px 0;
+  padding: 10px;
+  border: 1px solid #747266;
+  background-color: #efede3;
+  border-radius: 4px;
+  text-align: center;
+  width: 50%;
+}
+
+.load-project-dropdown select {
+  height: 100%;
+  width: 100%;
+  font-size: 1em;
+  border-radius: 4px;
+}
+
+.create-project-button:hover {
+  background-color: #747266;
+  color: #fff;
+}
+
 .sidebar ul {
   list-style: none;
   padding: 0;

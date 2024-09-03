@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useProjectManager from '../../utils/projectManager';
 import { addPageToProject, removeWindow, handlePageNameChange } from '../../utils/pageManager';
@@ -17,7 +17,6 @@ import ImageLinkModal from '../common/ImageLinkModal';
 import PromptModal from '../common/PromptModal';
 import generatePrompt, { generateAndSendPrompt } from '../common/PromptGenerator';
 
-
 function WebBuilder() {
   const serverProjectURL = process.env.REACT_APP_SERVER_PROJECT;
   const serverPageURL = process.env.REACT_APP_SERVER_PAGE;
@@ -25,16 +24,26 @@ function WebBuilder() {
   const serverModalURL = process.env.REACT_APP_SERVER_MODAL;
   const serverModalValuesURL = process.env.REACT_APP_SERVER_MODAL_VALUES;
 
-
-  const { projectName, setProjectName, currentProjectName, handleCreateProject } = useProjectManager(serverProjectURL, serverPageURL);
+  const { projectName, setProjectName, currentProjectName, handleCreateProject, fetchUserProjects } = useProjectManager(serverProjectURL, serverPageURL);
   const { openModal, closeModal, isModalOpen } = useModalManager();
   const [windows, setWindows] = useState([]);
   const [editingWindowId, setEditingWindowId] = useState(null);
   const [tempPageName, setTempPageName] = useState('');
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isLoadDropboxVisible, setIsLoadDropboxVisible] = useState(false); // New state for load dropdown visibility
+  const [projectNames, setProjectNames] = useState([]); // State to hold project names
   const [generatedWebsite, setGeneratedWebsite] = useState(null);
-  const [activeDropdown, setActiveDropdown] = useState(null); // New state for dropdown visibility
+  const [activeDropdown, setActiveDropdown] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      const projects = await fetchUserProjects();
+      setProjectNames(projects);
+    };
+
+    loadProjects();
+  }, [fetchUserProjects]);
 
   const addWindow = async (id) => {
     const newPageName = `Page ${windows.length + 1}`;
@@ -98,7 +107,6 @@ function WebBuilder() {
     }
   };
 
-
   const handleRemoveModal = (windowId, widgetId, modalType) => {
     removeWidgetModal(windowId, widgetId, modalType, windows, setWindows, currentProjectName, serverModalURL);
   };
@@ -125,11 +133,14 @@ function WebBuilder() {
   return (
     <div className="webbuilder-container">
       <div className="sidebar">
+        <button className="create-project-button" onClick={() => setIsFormVisible(true)}>
+          Create Project
+        </button>
+        <button className="load-project-button" onClick={() => setIsLoadDropboxVisible(!isLoadDropboxVisible)}>
+          Load Project
+        </button>
         <h2>Components</h2>
         <ul>
-          <li className="draggable-component create-project-button" onClick={() => setIsFormVisible(true)}>
-            Create Project
-          </li>
           {components.map((component, index) => (
             <li
               key={index}
@@ -143,9 +154,9 @@ function WebBuilder() {
         </ul>
       </div>
       <div className="webbuilder">
-        {windows.length === 0 && !isFormVisible && (
+        {windows.length === 0 && !isFormVisible && !isLoadDropboxVisible && (
           <div className="no-windows-message">
-            <p>No project created yet. Click "Create Project" to start.</p>
+            <p>No project created yet. Click "Create Project" or "Load Project" to start.</p>
           </div>
         )}
         {isFormVisible && (
@@ -161,6 +172,18 @@ function WebBuilder() {
             </label>
             <button type="submit">Submit</button>
           </form>
+        )}
+        {isLoadDropboxVisible && (
+          <div className="load-project-dropdown">
+            <select onChange={() => {}}>
+              <option value="">Select a project</option>
+              {projectNames.map((name, index) => (
+                <option key={index} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
         )}
         {windows.length > 0 &&
           windows.map((window) => (
@@ -300,7 +323,7 @@ function WebBuilder() {
                       setWindows={setWindows}
                       currentWidget={{ windowId: window.id, widgetId: widget.id }}
                       serverModalValuesURL={serverModalValuesURL}
-                      currentProjectName={currentProjectName}  
+                      currentProjectName={currentProjectName}
                     />
                   );
                 case 'link':
@@ -313,7 +336,7 @@ function WebBuilder() {
                       setWindows={setWindows}
                       currentWidget={{ windowId: window.id, widgetId: widget.id }}
                       serverModalValuesURL={serverModalValuesURL}
-                      currentProjectName={currentProjectName} 
+                      currentProjectName={currentProjectName}
                     />
                   );
                 case 'image-link':
@@ -326,7 +349,7 @@ function WebBuilder() {
                       setWindows={setWindows}
                       currentWidget={{ windowId: window.id, widgetId: widget.id }}
                       serverModalValuesURL={serverModalValuesURL}
-                      currentProjectName={currentProjectName} 
+                      currentProjectName={currentProjectName}
                     />
                   );
                 case 'prompt':
@@ -339,7 +362,7 @@ function WebBuilder() {
                       setWindows={setWindows}
                       currentWidget={{ windowId: window.id, widgetId: widget.id }}
                       serverModalValuesURL={serverModalValuesURL}
-                      currentProjectName={currentProjectName} 
+                      currentProjectName={currentProjectName}
                     />
                   );
                 default:

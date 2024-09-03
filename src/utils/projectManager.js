@@ -1,4 +1,3 @@
-// src/utils/projectManager.js
 import { useState } from 'react';
 import { addPageToProject } from './pageManager';
 
@@ -51,11 +50,37 @@ const useProjectManager = (serverProjectURL, serverPageURL) => {
     }
   };
 
+  const fetchUserProjects = async () => {
+    try {
+      const response = await fetch(`${serverProjectURL}/user-projects`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        alert(`Failed to load projects: ${errorMessage}`);
+        return [];
+      }
+
+      const projectNames = await response.json();
+      return projectNames;
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      alert('An unexpected error occurred while loading projects.');
+      return [];
+    }
+  };
+
   return {
     projectName,
     setProjectName,
     currentProjectName,
     handleCreateProject,
+    fetchUserProjects,
   };
 };
 
