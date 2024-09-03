@@ -27,24 +27,86 @@ const ImageLinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, c
     setWindows(updatedWindows);
   };
 
-  const removeImageInput = (imageId) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-            ...window,
-            widgets: window.widgets.map(widget =>
-              widget.id === widgetId
-                ? { 
-                    ...widget, 
-                    imageLinks: (widget.imageLinks || []).filter(image => image.id !== imageId) 
-                  }
-                : widget
-            )
-          }
-        : window
-    );
-    setWindows(updatedWindows);
-  };
+  const removeImageInput = async (imageId) => {
+    const widget = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId);
+    const imageLinks = widget?.imageLinks || [];
+    const imageToRemove = imageLinks.find(image => image.id === imageId);
+
+    if (!imageToRemove) {
+        console.error('Image to remove not found.');
+        return;
+    }
+
+    const widgetIndex = windows.find(w => w.id === windowId)?.widgets.findIndex(widget => widget.id === widgetId) + 1;
+    const pageName = windows.find(w => w.id === windowId)?.name;
+
+    // Ensure the position is calculated correctly
+    const position = imageLinks.indexOf(imageToRemove) + 1;
+
+    const modalPosition = widget.modals.indexOf('image-link') + 1;
+
+    if (!widget || !pageName || widgetIndex < 0 || !currentProjectName || modalPosition < 0) {
+        console.error('Error retrieving widget, page information, modal position, or project name.');
+        return;
+    }
+
+    const payload = {
+        position: position,
+        projectName: currentProjectName,
+        pageName: pageName,
+        modalType: 'image-link',
+        widgetPosition: widgetIndex,
+        modalPosition: modalPosition,
+    };
+
+    try {
+        const response = await fetch(`${serverModalValuesURL}/delete-image-link/`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            let errorMessage;
+            try {
+                const errorData = await response.json();
+                errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+            } catch (e) {
+                errorMessage = await response.text();
+            }
+            alert(`Failed to delete image link: ${errorMessage}`);
+            return;
+        }
+
+        // Update the state to remove the image link input from the frontend
+        const updatedWindows = windows.map(window =>
+            window.id === windowId
+                ? {
+                    ...window,
+                    widgets: window.widgets.map(widget =>
+                        widget.id === widgetId
+                            ? {
+                                ...widget,
+                                imageLinks: (widget.imageLinks || []).filter(image => image.id !== imageId)
+                            }
+                            : widget
+                    )
+                }
+                : window
+        );
+
+        setWindows(updatedWindows);
+        console.log('Image link removed successfully.');
+    } catch (error) {
+        console.error('Error deleting image link:', error);
+        alert('An unexpected error occurred while deleting the image link.');
+    }
+};
+
+  
 
   const handleImageChange = (imageId, value) => {
     const updatedWindows = windows.map(window =>
@@ -92,12 +154,6 @@ const ImageLinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, c
     const widgetIndex = windows.find(w => w.id === windowId)?.widgets.findIndex(widget => widget.id === widgetId) + 1;
     const pageName = windows.find(w => w.id === windowId)?.name;
   
-    console.log("Widget:", widget);
-    console.log("Widget Index:", widgetIndex);
-    console.log("Page Name:", pageName);
-    console.log("Project Name:", currentProjectName);
-  
-    // Ensure all necessary variables are retrieved correctly
     if (!widget || !pageName || widgetIndex < 0 || !currentProjectName) {
       console.error('Error retrieving widget, page information, or project name.');
       return;
@@ -105,8 +161,6 @@ const ImageLinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, c
   
     // Find the modal position for this specific modal in the context of all modals attached to the widget
     const modalPosition = widget.modals.indexOf('image-link') + 1;
-  
-    console.log("Modal Position:", modalPosition);
   
     if (modalPosition <= 0) {
       console.error('Error calculating modal position.');
@@ -122,8 +176,6 @@ const ImageLinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, c
       widgetPosition: widgetIndex,
       modalPosition: modalPosition, // This is the correct position within all modals
     };
-  
-    console.log(`Payload:`, payload);
   
     try {
       const response = await fetch(`${serverModalValuesURL}/add-image-link/`, {
@@ -174,7 +226,6 @@ const ImageLinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, c
       alert('An unexpected error occurred while adding the image link.');
     }
   };
-  
 
   const handleEditImageLink = (imageId) => {
     const updatedWindows = windows.map(window =>
@@ -274,32 +325,31 @@ const ImageLinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, c
                   Edit
                 </button>
               )}
-              {index === imageLinks.length - 1 ? (
+              <img
+                src={trashcan}
+                alt="Remove Image"
+                className="remove-image-button"
+                onClick={() => removeImageInput(image.id)}
+              />
+              {index === imageLinks.length - 1 && (
                 <img
                   src={plusSymbol}
                   alt="Add Image"
                   className="add-image-button"
                   onClick={addImageInput}
                 />
-              ) : (
-                index !== 0 && (
-                  <img
-                    src={trashcan}
-                    alt="Remove Image"
-                    className="remove-image-button"
-                    onClick={() => removeImageInput(image.id)}
-                  />
-                )
               )}
             </div>
           ))}
           {imageLinks.length === 0 && (
-            <img
-              src={plusSymbol}
-              alt="Add Image"
-              className="add-image-button"
-              onClick={addImageInput}
-            />
+            <div className="empty-state">
+              <img
+                src={plusSymbol}
+                alt="Add Image"
+                className="add-image-button"
+                onClick={addImageInput}
+              />
+            </div>
           )}
         </div>
       </div>

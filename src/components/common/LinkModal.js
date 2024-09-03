@@ -35,24 +35,85 @@ const LinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curren
     setWindows(updatedWindows);
   };
 
-  const removeLinkInput = (linkId) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-            ...window,
-            widgets: window.widgets.map(widget =>
-              widget.id === widgetId
-                ? { 
-                    ...widget, 
-                    links: (widget.links || []).filter(link => link.id !== linkId) 
-                  }
-                : widget
-            )
-          }
-        : window
-    );
-    setWindows(updatedWindows);
+  const removeLinkInput = async (linkId) => {
+    const widget = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId);
+    const links = widget?.links || [];
+    const linkToRemove = links.find(link => link.id === linkId);
+  
+    if (!linkToRemove) {
+      console.error('Link to remove not found.');
+      return;
+    }
+  
+    const widgetIndex = windows.find(w => w.id === windowId)?.widgets.findIndex(widget => widget.id === widgetId) + 1;
+    const pageName = windows.find(w => w.id === windowId)?.name;
+  
+    // Find the modal position for link modals
+    const modalPosition = widget.modals.indexOf('link') + 1;
+  
+    if (!widget || !pageName || widgetIndex < 0 || !currentProjectName || modalPosition < 0) {
+      console.error('Error retrieving widget, page information, modal position, or project name.');
+      return;
+    }
+  
+    const payload = {
+      position: links.indexOf(linkToRemove) + 1,
+      projectName: currentProjectName,
+      pageName: pageName,
+      modalType: 'link',
+      widgetPosition: widgetIndex,
+      modalPosition: modalPosition,
+    };
+  
+    console.log(`Deleting link at Position: ${payload.position}, Widget position: ${payload.widgetPosition}, Modal position: ${payload.modalPosition}, ProjectName: ${payload.projectName}, PageName: ${payload.pageName}`);
+  
+    try {
+      const response = await fetch(`${serverModalValuesURL}/delete-link/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        } catch (e) {
+          errorMessage = await response.text();
+        }
+        alert(`Failed to delete link: ${errorMessage}`);
+        return;
+      }
+  
+      // Update the state to remove the link input from the frontend
+      const updatedWindows = windows.map(window =>
+        window.id === windowId
+          ? {
+              ...window,
+              widgets: window.widgets.map(widget =>
+                widget.id === widgetId
+                  ? { 
+                      ...widget, 
+                      links: (widget.links || []).filter(link => link.id !== linkId) 
+                    }
+                  : widget
+              )
+            }
+          : window
+      );
+  
+      setWindows(updatedWindows);
+      console.log('Link removed successfully.');
+    } catch (error) {
+      console.error('Error deleting link:', error);
+      alert('An unexpected error occurred while deleting the link.');
+    }
   };
+  
 
   const handleLinkChange = (linkId, field, value) => {
     const updatedWindows = windows.map(window =>
@@ -174,9 +235,6 @@ const LinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curren
       alert('An unexpected error occurred while adding the link.');
     }
   };
-  
-  
-
 
   const handleEditLink = (linkId) => {
     const updatedWindows = windows.map(window =>
@@ -285,32 +343,31 @@ const LinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curren
                   Edit
                 </button>
               )}
-              {index === links.length - 1 ? (
+              <img
+                src={trashcan}
+                alt="Remove Link"
+                className="remove-link-button"
+                onClick={() => removeLinkInput(link.id)}
+              />
+              {index === links.length - 1 && (
                 <img
                   src={plusSymbol}
                   alt="Add Link"
                   className="add-link-button"
                   onClick={addLinkInput}
                 />
-              ) : (
-                index !== 0 && (
-                  <img
-                    src={trashcan}
-                    alt="Remove Link"
-                    className="remove-link-button"
-                    onClick={() => removeLinkInput(link.id)}
-                  />
-                )
               )}
             </div>
           ))}
           {links.length === 0 && (
-            <img
-              src={plusSymbol}
-              alt="Add Link"
-              className="add-link-button"
-              onClick={addLinkInput}
-            />
+            <div className="empty-state">
+              <img
+                src={plusSymbol}
+                alt="Add Link"
+                className="add-link-button"
+                onClick={addLinkInput}
+              />
+            </div>
           )}
         </div>
       </div>

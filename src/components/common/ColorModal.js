@@ -1,9 +1,9 @@
 import React from 'react';
 import plusSymbol from '../../assets/images/plus-symbol.png';
-import '../../assets/styles/ColorModal.css';
 import trashcan from '../../assets/images/trashcan.png';
+import '../../assets/styles/ColorModal.css';
 
-const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, currentProjectName, serverModalValuesURL }) => {
+const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, serverModalValuesURL, currentProjectName }) => {
   if (!isOpen) return null;
 
   const { windowId, widgetId } = currentWidget;
@@ -27,24 +27,85 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curre
     setWindows(updatedWindows);
   };
 
-  const removeColorInput = (colorId) => {
-    const updatedWindows = windows.map(window =>
-      window.id === windowId
-        ? {
-            ...window,
-            widgets: window.widgets.map(widget =>
-              widget.id === widgetId
-                ? { 
-                    ...widget, 
-                    colors: (widget.colors || []).filter(color => color.id !== colorId) 
-                  }
-                : widget
-            )
-          }
-        : window
-    );
-    setWindows(updatedWindows);
+  const removeColorInput = async (colorId) => {
+    const widget = windows.find(w => w.id === windowId)?.widgets.find(w => w.id === widgetId);
+    const colors = widget?.colors || [];
+    const colorToRemove = colors.find(color => color.id === colorId);
+  
+    if (!colorToRemove) {
+      console.error('Color to remove not found.');
+      return;
+    }
+  
+    const widgetIndex = windows.find(w => w.id === windowId)?.widgets.findIndex(widget => widget.id === widgetId) + 1;
+    const pageName = windows.find(w => w.id === windowId)?.name;
+  
+    // Find the modal position for color modals
+    const modalPosition = widget.modals.indexOf('color') + 1;
+  
+    if (!widget || !pageName || widgetIndex < 0 || !currentProjectName || modalPosition < 0) {
+      console.error('Error retrieving widget, page information, modal position, or project name.');
+      return;
+    }
+  
+    const payload = {
+      position: colors.indexOf(colorToRemove) + 1,
+      projectName: currentProjectName,
+      pageName: pageName,
+      modalType: 'color',
+      widgetPosition: widgetIndex,
+      modalPosition: modalPosition,
+    };
+  
+    console.log(`Deleting color at Position: ${payload.position}, Widget position: ${payload.widgetPosition}, Modal position: ${payload.modalPosition}, ProjectName: ${payload.projectName}, PageName: ${payload.pageName}`);
+  
+    try {
+      const response = await fetch(`${serverModalValuesURL}/delete-color/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        } catch (e) {
+          errorMessage = await response.text();
+        }
+        alert(`Failed to delete color: ${errorMessage}`);
+        return;
+      }
+  
+      // Update the state to remove the color input from the frontend
+      const updatedWindows = windows.map(window =>
+        window.id === windowId
+          ? {
+              ...window,
+              widgets: window.widgets.map(widget =>
+                widget.id === widgetId
+                  ? { 
+                      ...widget, 
+                      colors: (widget.colors || []).filter(color => color.id !== colorId) 
+                    }
+                  : widget
+              )
+            }
+          : window
+      );
+  
+      setWindows(updatedWindows);
+      console.log('Color removed successfully.');
+    } catch (error) {
+      console.error('Error deleting color:', error);
+      alert('An unexpected error occurred while deleting the color.');
+    }
   };
+  
 
   const handleColorChange = (colorId, value) => {
     const updatedWindows = windows.map(window =>
@@ -94,7 +155,7 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curre
     const widgetIndex = windows.find(w => w.id === windowId)?.widgets.findIndex(widget => widget.id === widgetId) + 1;
     const pageName = windows.find(w => w.id === windowId)?.name;
   
-    // Find the modal position for this specific modal in the context of all modals attached to the widget
+    // Find the modal position for color modals
     const modalPosition = widget.modals.indexOf('color') + 1;
   
     if (!widget || !pageName || widgetIndex < 0 || !currentProjectName || modalPosition < 0) {
@@ -109,7 +170,7 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curre
       pageName: pageName,
       modalType: 'color',
       widgetPosition: widgetIndex,
-      modalPosition: modalPosition, // This is the correct position within all modals
+      modalPosition: modalPosition,
     };
   
     console.log(`Input Position: ${payload.position}, Widget position: ${payload.widgetPosition}, Modal position: ${payload.modalPosition}, ProjectName: ${payload.projectName}, PageName: ${payload.pageName}`);
@@ -164,10 +225,6 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curre
     }
   };
   
-  
-  
-
-
   const handleEditColor = (colorId) => {
     const updatedWindows = windows.map(window =>
       window.id === windowId
@@ -266,37 +323,37 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curre
                   Edit
                 </button>
               )}
-              {index === colors.length - 1 ? (
+              <img
+                src={trashcan}
+                alt="Remove Color"
+                className="remove-color-button"
+                onClick={() => removeColorInput(color.id)}
+              />
+              {index === colors.length - 1 && (
                 <img
                   src={plusSymbol}
                   alt="Add Color"
                   className="add-color-button"
                   onClick={addColorInput}
                 />
-              ) : (
-                index !== 0 && (
-                  <img
-                    src={trashcan}
-                    alt="Remove Color"
-                    className="remove-color-button"
-                    onClick={() => removeColorInput(color.id)}
-                  />
-                )
               )}
             </div>
           ))}
           {colors.length === 0 && (
-            <img
-              src={plusSymbol}
-              alt="Add Color"
-              className="add-color-button"
-              onClick={addColorInput}
-            />
+            <div className="empty-state">
+              <img
+                src={plusSymbol}
+                alt="Add Color"
+                className="add-color-button"
+                onClick={addColorInput}
+              />
+            </div>
           )}
         </div>
       </div>
     </div>
   );
+
 };
 
 export default ColorModal;
