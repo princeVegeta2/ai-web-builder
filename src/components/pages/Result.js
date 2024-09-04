@@ -20,7 +20,7 @@ function Result() {
     // Iterate through the response to find all sections and extract their contents
     while ((match = sectionRegex.exec(response)) !== null) {
       const sectionName = match[1];
-      const sectionStartIndex = match.index;
+      //const sectionStartIndex = match.index;
 
       const jsMatch = jsCodeRegex.exec(response);
       const cssMatch = cssCodeRegex.exec(response);

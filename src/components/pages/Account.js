@@ -19,7 +19,6 @@ function Account() {
         try {
           const usernameResponse = await fetch(`${serverUserURL}/get-username`, {
             method: 'GET',
-            method: 'GET',
             headers: { Authorization: `Bearer ${token}` },
           });
           const usernameData = await usernameResponse.json();

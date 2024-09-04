@@ -326,14 +326,14 @@ const ImageLinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, c
               )}
               <img
                 src={trashcan}
-                alt="Remove Image"
+                alt="Remove"
                 className="remove-image-button"
                 onClick={() => removeImageInput(image.id)}
               />
               {index === imageLinks.length - 1 && (
                 <img
                   src={plusSymbol}
-                  alt="Add Image"
+                  alt="Add"
                   className="add-image-button"
                   onClick={addImageInput}
                 />
@@ -344,7 +344,7 @@ const ImageLinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, c
             <div className="empty-state">
               <img
                 src={plusSymbol}
-                alt="Add Image"
+                alt="Add"
                 className="add-image-button"
                 onClick={addImageInput}
               />

@@ -1,7 +1,7 @@
 // src/components/WebBuilder.js
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import useProjectManager from '../../utils/projectManager'; // Import useProjectManager hook
 import { addPageToProject, removeWindow, handlePageNameChange } from '../../utils/pageManager';
 import { handleOnDrag, handleOnDrop, removeWidget, handleDragOver, addWidgetModal, removeWidgetModal } from '../../utils/widgetManager';
@@ -17,7 +17,7 @@ import ColorModal from '../common/ColorModal';
 import LinkModal from '../common/LinkModal';
 import ImageLinkModal from '../common/ImageLinkModal';
 import PromptModal from '../common/PromptModal';
-import generatePrompt, { generateAndSendPrompt } from '../common/PromptGenerator';
+import generatePrompt from '../common/PromptGenerator';
 
 function WebBuilder() {
   // Environment URLs
@@ -42,9 +42,9 @@ function WebBuilder() {
   const [isLoadDropboxVisible, setIsLoadDropboxVisible] = useState(false);
   const [projectNames, setProjectNames] = useState([]);
   const [selectedProject, setSelectedProject] = useState(''); // New state for selected project name
-  const [generatedWebsite, setGeneratedWebsite] = useState(null);
+  const [generatedWebsite] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
   // Function to handle loading projects when "Load Project" button is clicked
   const handleLoadProjects = async () => {

@@ -87,6 +87,9 @@ export const handleOnDrop = async (e, windowId, windows, setWindows, currentProj
                             case 'prompt':
                                 updatedWidget.promptString = updatedWidget.promptString || '';
                                 break;
+                            default:
+                              console.log("Modal type not found");
+                              break;
                         }
   
                         return updatedWidget;
@@ -237,6 +240,9 @@ export const removeWidget = async (windowId, widgetId, windows, setWindows, curr
                             case 'prompt':
                                 delete updatedWidget.promptString;
                                 break;
+                            default:
+                              console.log("Modal not found");
+                              break;
                         }
   
                         return updatedWidget;
