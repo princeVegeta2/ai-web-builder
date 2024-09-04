@@ -47,9 +47,11 @@ function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      const data = await response.json();
+  
+      const data = await response.json(); // Parse the response as JSON
+  
       if (response.ok) {
-        login(data.token); // Automatically log in after sign-up
+        await handleSignIn();  // Call sign-in function programmatically after signup
       } else {
         alert(data.error || 'Sign up failed');
       }
@@ -58,15 +60,17 @@ function Home() {
       console.error(error);
     }
   };
+  
+  
+    
 
-  const handleSignIn = async (e) => {
-    e.preventDefault();
+  const handleSignIn = async () => {
     try {
       const response = await fetch(`${serverAuthURL}/signin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
+          email: formData.email,  // Use the form data
           password: formData.password,
           staySignedIn: formData.staySignedIn, // Include the staySignedIn flag
         }),
@@ -82,6 +86,7 @@ function Home() {
       console.error(error);
     }
   };
+  
 
   const handleWebBuilderClick = async () => {
     try {

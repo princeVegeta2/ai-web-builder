@@ -229,7 +229,6 @@ const LinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curren
   
       setWindows(updatedWindows);
       console.log('Link saved:', linkToSave.name, linkToSave.url);
-      alert('Link saved successfully!');
     } catch (error) {
       console.error('Error adding link:', error);
       alert('An unexpected error occurred while adding the link.');

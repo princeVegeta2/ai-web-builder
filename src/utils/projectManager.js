@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { addPageToProject } from './pageManager';
 
-const useProjectManager = (serverProjectURL, serverPageURL) => {
+export const useProjectManager = (serverProjectURL, serverPageURL) => {
   const [projectName, setProjectName] = useState('');
   const [currentProjectName, setCurrentProjectName] = useState('');
 
@@ -58,20 +58,41 @@ const useProjectManager = (serverProjectURL, serverPageURL) => {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
-
+  
       if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
-        alert(`Failed to load projects: ${errorMessage}`);
         return [];
       }
-
+  
       const projectNames = await response.json();
       return projectNames;
     } catch (error) {
       console.error('Error fetching projects:', error);
-      alert('An unexpected error occurred while loading projects.');
       return [];
+    }
+  };
+  
+ const fetchProjectByName = async (serverProjectURL, projectName) => {
+    try {
+      const response = await fetch(`${serverProjectURL}/load-project?projectName=${encodeURIComponent(projectName)}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        alert(`Failed to load project: ${errorMessage}`);
+        return null;
+      }
+  
+      const projectData = await response.json();
+      return projectData;
+    } catch (error) {
+      console.error('Error loading project:', error);
+      alert('An unexpected error occurred while loading the project.');
+      return null;
     }
   };
 
@@ -79,8 +100,10 @@ const useProjectManager = (serverProjectURL, serverPageURL) => {
     projectName,
     setProjectName,
     currentProjectName,
+    setCurrentProjectName, // Export this function for use in WebBuilder.js
     handleCreateProject,
     fetchUserProjects,
+    fetchProjectByName
   };
 };
 

@@ -92,7 +92,6 @@ const PromptModal = ({ isOpen, onClose, windows, setWindows, currentWidget, curr
 
       setWindows(updatedWindows);
       console.log('Prompt saved:', promptString);
-      alert('Prompt saved successfully!');
     } catch (error) {
       console.error('Error adding prompt:', error);
       alert('An unexpected error occurred while adding the prompt.');

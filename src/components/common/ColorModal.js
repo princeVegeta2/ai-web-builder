@@ -218,7 +218,6 @@ const ColorModal = ({ isOpen, onClose, windows, setWindows, currentWidget, serve
   
       setWindows(updatedWindows);
       console.log('Color saved:', colorToSave.value);
-      alert('Color saved successfully!');
     } catch (error) {
       console.error('Error adding color:', error);
       alert('An unexpected error occurred while adding the color.');

@@ -220,7 +220,6 @@ const ImageLinkModal = ({ isOpen, onClose, windows, setWindows, currentWidget, c
   
       setWindows(updatedWindows);
       console.log('Image link saved:', imageToSave.value);
-      alert('Image link saved successfully!');
     } catch (error) {
       console.error('Error adding image link:', error);
       alert('An unexpected error occurred while adding the image link.');
