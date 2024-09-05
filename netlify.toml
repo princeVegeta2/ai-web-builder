@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "/api/*"
+  to = "http://web-builder-server.eu-north-1.elasticbeanstalk.com/api/"
+  status = 200
+  force = true

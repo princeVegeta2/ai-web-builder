@@ -12,8 +12,9 @@ function Home() {
   const { login, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
-  const serverAuthURL = process.env.REACT_APP_SERVER_AUTH;
-  const serverUserUrl = process.env.REACT_APP_SERVER_USER;
+  const serverAuthURL = '/api/Auth';
+  const serverUserUrl = '/api/UserData';
+  
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -75,7 +76,7 @@ function Home() {
           staySignedIn: formData.staySignedIn, // Include the staySignedIn flag
         }),
       });
-      const data = await response.json();
+      const data = await response.json(); 
       if (response.ok) {
         login(data.token); // Log in the user
       } else {
