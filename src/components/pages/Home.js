@@ -12,9 +12,8 @@ function Home() {
   const { login, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
-  const serverAuthURL = '/api/Auth';
-  const serverUserUrl = '/api/UserData';
-  
+  const serverAuthURL = process.env.REACT_APP_SERVER_AUTH;
+  const serverUserUrl = process.env.REACT_APP_SERVER_USER;
 
   useEffect(() => {
     if (isAuthenticated) {

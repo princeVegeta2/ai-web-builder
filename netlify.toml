@@ -1,5 +1,0 @@
-[[redirects]]
-  from = "/api/*"
-  to = "http://web-builder-server.eu-north-1.elasticbeanstalk.com/api/:splat"
-  status = 200
-  force = true
