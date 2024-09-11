@@ -64,8 +64,12 @@ function Home() {
 
 
 
-  const handleSignIn = async (e) => {
-    e.preventDefault(); // Prevent page reload on form submission
+  const handleSignIn = async (e = null) => {
+    // Prevent form submission only if `e` is passed (i.e., it's a form submit)
+    if (e) {
+      e.preventDefault();
+    }
+  
     try {
       console.log('Sending request to:', `${serverAuthURL}/signin`);
       const response = await fetch(`${serverAuthURL}/signin`, {
@@ -94,6 +98,7 @@ function Home() {
       alert('Sign in failed. Please try again later.');
     }
   };
+  
   
   
 
