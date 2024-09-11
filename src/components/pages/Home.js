@@ -47,9 +47,9 @@ function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-  
+
       const data = await response.json(); // Parse the response as JSON
-  
+
       if (response.ok) {
         await handleSignIn();  // Call sign-in function programmatically after signup
       } else {
@@ -60,33 +60,43 @@ function Home() {
       console.error(error);
     }
   };
-  
-  
-    
 
-  const handleSignIn = async () => {
+
+
+
+  const handleSignIn = async (e) => {
+    e.preventDefault(); // Prevent page reload on form submission
     try {
+      console.log('Sending request to:', `${serverAuthURL}/signin`);
       const response = await fetch(`${serverAuthURL}/signin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,  // Use the form data
+          email: formData.email,
           password: formData.password,
-          staySignedIn: formData.staySignedIn, // Include the staySignedIn flag
+          staySignedIn: formData.staySignedIn,
         }),
+        credentials: 'include', // Include cookies if necessary
       });
-      const data = await response.json(); 
-      if (response.ok) {
-        login(data.token); // Log in the user
+  
+      if (!response.ok) {
+        console.log('Response not OK:', response);
+        const errorData = await response.json().catch(() => ({ error: "Unknown error occurred" }));
+        console.log('Error data:', errorData);
+        alert('Sign in failed: ' + (errorData.error || 'Unknown error'));
       } else {
-        alert('Sign in failed');
+        const data = await response.json();
+        console.log('Sign in success:', data);
+        login(data.token); // Save the JWT in the AuthContext
       }
     } catch (error) {
-      alert('Sign in failed');
-      console.error(error);
+      console.error('Sign in error:', error);
+      alert('Sign in failed. Please try again later.');
     }
   };
   
+  
+
 
   const handleWebBuilderClick = async () => {
     try {
