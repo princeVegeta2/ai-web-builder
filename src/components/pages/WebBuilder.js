@@ -28,7 +28,8 @@ function WebBuilder() {
   const serverModalValuesURL = process.env.REACT_APP_SERVER_MODAL_VALUES;
 
   // Destructure necessary functions and states from useProjectManager
-  const { projectName, setProjectName, currentProjectName, setCurrentProjectName, handleCreateProject, fetchUserProjects, fetchProjectByName } = useProjectManager(serverProjectURL, serverPageURL);
+  const { projectName, setProjectName, currentProjectName, setCurrentProjectName, handleCreateProject,
+    fetchUserProjects, fetchProjectByName, deleteProject } = useProjectManager(serverProjectURL, serverPageURL);
 
 
   // Modal management
@@ -57,22 +58,33 @@ function WebBuilder() {
   };
 
   // Function to handle project selection from the dropdown
-  const handleProjectSelection = async (e) => {
-    const projectName = e.target.value;
+  const handleProjectSelection = async (projectName) => {
     setSelectedProject(projectName); // Set the selected project
   
-    if (projectName) { // Ensure a project is selected
-      // Fetch the project data
-      const projectData = await fetchProjectByName(serverProjectURL, projectName);
+    if (projectName) {
+      console.log(`Project selected: ${selectedProject}`); // Debugging use of selectedProject
   
+      const projectData = await fetchProjectByName(serverProjectURL, projectName);
       if (projectData) {
-        // Set the current project name in the project manager
-        setCurrentProjectName(projectName);  // Set the current project name here
-        constructProjectFromData(projectData); // Construct the project structure from data
+        setCurrentProjectName(projectName);
+        constructProjectFromData(projectData);
       }
     }
   };
   
+
+
+  // Delete the project in the dropdown
+  const handleDeleteProject = async (projectName) => {
+    const isDeleted = await deleteProject(serverProjectURL, projectName);
+    if (isDeleted) {
+      // Optionally, refresh the project list after deletion
+      const updatedProjects = await fetchUserProjects();
+      setProjectNames(updatedProjects);
+    }
+  };
+
+
 
   // Function to construct project structure from fetched data
   const constructProjectFromData = (projectData) => {
@@ -85,7 +97,7 @@ function WebBuilder() {
           modals: widget.modals || [], // Initialize empty modals array
           ...widget, // Spread other properties like position, etc.
         };
-  
+
         // If the widget has modals, map them to the correct structure
         if (widget.colorModal) {
           initializedWidget.modals.push('color');
@@ -98,7 +110,7 @@ function WebBuilder() {
             originalValue: color.color
           }));
         }
-  
+
         if (widget.linkModal) {
           initializedWidget.modals.push('link');
           initializedWidget.links = widget.linkModal.links.map(link => ({
@@ -112,7 +124,7 @@ function WebBuilder() {
             originalUrl: link.url
           }));
         }
-  
+
         if (widget.imageLinkModal) {
           initializedWidget.modals.push('image-link');
           initializedWidget.imageLinks = widget.imageLinkModal.imageLinks.map(imageLink => ({
@@ -124,15 +136,15 @@ function WebBuilder() {
             originalValue: imageLink.url
           }));
         }
-  
+
         if (widget.promptModal) {
           initializedWidget.modals.push('prompt');
           initializedWidget.promptString = widget.promptModal.prompt; // Load the prompt value from the JSON payload
         }
-  
+
         return initializedWidget;
       });
-  
+
       return {
         id: Date.now() + Math.random(), // Unique ID for each window
         name: page.pageName,
@@ -140,12 +152,12 @@ function WebBuilder() {
         hasPlusButton: true,
       };
     });
-  
+
     setWindows(loadedWindows); // Update state with loaded project structure
     setIsLoadDropboxVisible(false); // Hide dropdown after loading project
   };
-  
-  
+
+
 
   // Function to add a new window (page)
   const addWindow = async (id) => {
@@ -281,15 +293,22 @@ function WebBuilder() {
         {/* Load Project Dropdown */}
         {isLoadDropboxVisible && projectNames.length > 0 && (
           <div className="load-project-dropdown">
-            <select onChange={handleProjectSelection} value={selectedProject}>
-              <option value="">Select a project</option>
+            <ul>
               {projectNames.map((name, index) => (
-                <option key={index} value={name}>
-                  {name}
-                </option>
+                <li key={index} className="dropdown-item">
+                  <span onClick={() => handleProjectSelection(name)}>{name}</span>
+                  <img
+                    src={trashcan}
+                    alt="Delete Project"
+                    onClick={() => handleDeleteProject(name)}
+                    className="dropdown-trashcan-icon"
+                  />
+                </li>
               ))}
-            </select>
+            </ul>
           </div>
+
+
         )}
 
         {/* No Projects Available Message */}

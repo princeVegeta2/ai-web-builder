@@ -96,6 +96,34 @@ export const useProjectManager = (serverProjectURL, serverPageURL) => {
     }
   };
 
+const deleteProject = async (serverProjectURL, projectName) => {
+    try {
+      const response = await fetch(`${serverProjectURL}/delete-project`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ name: projectName }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+        alert(`Failed to delete project: ${errorMessage}`);
+        return false;
+      }
+  
+      alert('Project deleted successfully.');
+      return true;
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert('An unexpected error occurred while deleting the project.');
+      return false;
+    }
+  };
+  
+
   return {
     projectName,
     setProjectName,
@@ -103,7 +131,8 @@ export const useProjectManager = (serverProjectURL, serverPageURL) => {
     setCurrentProjectName, // Export this function for use in WebBuilder.js
     handleCreateProject,
     fetchUserProjects,
-    fetchProjectByName
+    fetchProjectByName,
+    deleteProject
   };
 };
 
