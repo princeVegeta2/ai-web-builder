@@ -82,7 +82,7 @@ function WebBuilder() {
         const initializedWidget = {
           id: Date.now() + Math.random(), // Create unique IDs
           type: widget.type,
-          modals: [], // Initialize empty modals array
+          modals: widget.modals || [], // Initialize empty modals array
           ...widget, // Spread other properties like position, etc.
         };
   

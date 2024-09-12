@@ -65,56 +65,36 @@ export const handleOnDrop = async (e, windowId, windows, setWindows, currentProj
   
 
   export const addWidgetModal = async (windowId, widgetId, modalType, windows, setWindows, currentProjectName, serverModalURL) => {
-    const updatedWindows = windows.map(window => {
-        if (window.id === windowId) {
-            return {
-                ...window,
-                widgets: window.widgets.map(widget => {
-                    if (widget.id === widgetId) {
-                        let updatedWidget = { ...widget, modals: [...widget.modals, modalType] };
-  
-                        // Initialize the corresponding data structure based on the modal type
-                        switch (modalType) {
-                            case 'color':
-                                updatedWidget.colors = updatedWidget.colors || [{ id: Date.now(), value: '' }];
-                                break;
-                            case 'link':
-                                updatedWidget.links = updatedWidget.links || [{ id: Date.now(), name: '', url: '' }];
-                                break;
-                            case 'image-link':
-                                updatedWidget.imageLinks = updatedWidget.imageLinks || [{ id: Date.now(), value: '' }];
-                                break;
-                            case 'prompt':
-                                updatedWidget.promptString = updatedWidget.promptString || '';
-                                break;
-                            default:
-                              console.log("Modal type not found");
-                              break;
-                        }
-  
-                        return updatedWidget;
-                    }
-                    return widget;
-                }),
-            };
-        }
-        return window;
-    });
-  
-    // Find the window and widget positions
+    // Find the correct window by its id
     const window = windows.find(w => w.id === windowId);
     if (!window) {
       console.error("Window not found for the given windowId");
       return;
     }
   
+    // Find the widget by its id
     const widgetIndex = window.widgets.findIndex(widget => widget.id === widgetId);
     if (widgetIndex === -1) {
       console.error("Widget not found for the given widgetId");
       return;
     }
   
-    const position = updatedWindows[windowId - 1].widgets[widgetIndex].modals.length;
+    // Now we correctly have the window and widget, so let's work on updating the state
+    const updatedWindows = windows.map(w =>
+      w.id === windowId
+        ? {
+            ...w,
+            widgets: w.widgets.map(widget =>
+              widget.id === widgetId
+                ? { ...widget, modals: [...(widget.modals || []), modalType] } // Ensure modals array is initialized
+                : widget
+            ),
+          }
+        : w
+    );
+  
+    // Position is now based on the correct window and widget
+    const position = updatedWindows.find(w => w.id === windowId).widgets[widgetIndex].modals.length;
     const pageName = window.name;
     const widgetPosition = widgetIndex + 1;
   
@@ -124,11 +104,11 @@ export const handleOnDrop = async (e, windowId, windows, setWindows, currentProj
       widgetPosition: widgetPosition,
       projectName: currentProjectName,
       pageName: pageName,
-      type: modalType
+      type: modalType,
     };
-
-    // Debug
-    console.log(`${payload.type} modal added. Position: ${payload.position}, Widget Position: ${payload.widgetPosition} `);
+  
+    // Debug log
+    console.log(`${payload.type} modal added. Position: ${payload.position}, Widget Position: ${payload.widgetPosition}`);
   
     try {
       const response = await fetch(`${serverModalURL}/add-modal/`, {
@@ -147,14 +127,14 @@ export const handleOnDrop = async (e, windowId, windows, setWindows, currentProj
         return;
       }
   
-      // If the server-side operation is successful, update the local state
+      // Update the state only if the modal is successfully added
       setWindows(updatedWindows);
-  
     } catch (error) {
       console.error('Error adding modal:', error);
       alert('An unexpected error occurred while adding the modal.');
     }
   };
+  
   
 
 export const removeWidget = async (windowId, widgetId, windows, setWindows, currentProjectName, serverWidgetURL) => {
