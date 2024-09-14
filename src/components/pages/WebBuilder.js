@@ -60,10 +60,10 @@ function WebBuilder() {
   // Function to handle project selection from the dropdown
   const handleProjectSelection = async (projectName) => {
     setSelectedProject(projectName); // Set the selected project
-  
+
     if (projectName) {
       console.log(`Project selected: ${selectedProject}`); // Debugging use of selectedProject
-  
+
       const projectData = await fetchProjectByName(serverProjectURL, projectName);
       if (projectData) {
         setCurrentProjectName(projectName);
@@ -71,18 +71,28 @@ function WebBuilder() {
       }
     }
   };
-  
+
 
 
   // Delete the project in the dropdown
   const handleDeleteProject = async (projectName) => {
-    const isDeleted = await deleteProject(serverProjectURL, projectName);
-    if (isDeleted) {
-      // Optionally, refresh the project list after deletion
-      const updatedProjects = await fetchUserProjects();
-      setProjectNames(updatedProjects);
+    // Display the confirmation dialog
+    const confirmed = window.confirm(`Are you sure you want to delete the project "${projectName}"?`);
+
+    // If the user confirmed, proceed with the deletion
+    if (confirmed) {
+      const isDeleted = await deleteProject(serverProjectURL, projectName);
+
+      if (isDeleted) {
+        // Optionally, refresh the project list after deletion
+        const updatedProjects = await fetchUserProjects();
+        setProjectNames(updatedProjects);
+      }
+    } else {
+      console.log('Project deletion canceled.');
     }
   };
+
 
 
 
@@ -320,7 +330,7 @@ function WebBuilder() {
 
         {/* Render Windows (Pages) */}
         {windows.length > 0 &&
-          windows.map((window) => (
+          windows.map((window, index) => (
             <div key={window.id} className="workspace-window">
               {/* Editing Page Name */}
               {editingWindowId === window.id ? (
@@ -434,7 +444,7 @@ function WebBuilder() {
                 </div>
 
                 {/* Remove Window Button */}
-                {window.id !== 1 && (
+                {index !== 0 && (
                   <img
                     src={trashcan}
                     alt="Remove Window"
