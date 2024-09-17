@@ -1,7 +1,6 @@
 // src/components/WebBuilder.js
-
 import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import useProjectManager from '../../utils/projectManager'; // Import useProjectManager hook
 import { addPageToProject, removeWindow, handlePageNameChange } from '../../utils/pageManager';
 import { handleOnDrag, handleOnDrop, removeWidget, handleDragOver, addWidgetModal, removeWidgetModal } from '../../utils/widgetManager';
@@ -17,7 +16,7 @@ import ColorModal from '../common/ColorModal';
 import LinkModal from '../common/LinkModal';
 import ImageLinkModal from '../common/ImageLinkModal';
 import PromptModal from '../common/PromptModal';
-import generatePrompt from '../common/PromptGenerator';
+import { generateAndSendPrompt } from '../common/PromptGenerator';
 
 function WebBuilder() {
   // Environment URLs
@@ -43,9 +42,8 @@ function WebBuilder() {
   const [isLoadDropboxVisible, setIsLoadDropboxVisible] = useState(false);
   const [projectNames, setProjectNames] = useState([]);
   const [selectedProject, setSelectedProject] = useState(''); // New state for selected project name
-  const [generatedWebsite] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
-  //const navigate = useNavigate();
+  const navigate = useNavigate();
 
   // Function to handle loading projects when "Load Project" button is clicked
   const handleLoadProjects = async () => {
@@ -185,12 +183,6 @@ function WebBuilder() {
     }
   };
 
-  // Function to generate the website prompt (debug version)
-  const debugGenerateWebsitePrompt = async () => {
-    const prompt = generatePrompt(windows);
-    console.log('Generated Prompt:', prompt);
-  };
-
   // List of draggable components
   const components = [
     { name: 'Navbar' },
@@ -249,6 +241,16 @@ function WebBuilder() {
         return null;
     }
   };
+
+  const handleGenerateAndSendPrompt = async () => {
+    try {
+      const response = await generateAndSendPrompt(windows); // Send the windows state to generate the prompt
+      navigate('/result', { state: { generatedWebsite: response } });
+    } catch (error) {
+      console.error("Failed to generate and send prompt:", error);
+    }
+  };
+  
 
   return (
     <div className="webbuilder-container">
@@ -532,18 +534,11 @@ function WebBuilder() {
 
         {/* Generate Website Prompt Button */}
         {windows.length > 0 && (
-          <button className="generate-prompt-button" onClick={debugGenerateWebsitePrompt}>
+          <button className="generate-prompt-button" onClick={handleGenerateAndSendPrompt}>
             Generate Website Prompt
           </button>
         )}
 
-        {/* Display Generated Website */}
-        {generatedWebsite && (
-          <div className="generated-website">
-            <h3>Generated Website:</h3>
-            <pre>{generatedWebsite}</pre>
-          </div>
-        )}
       </div>
     </div>
   );

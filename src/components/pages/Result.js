@@ -1,65 +1,86 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useLocation } from 'react-router-dom';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { atomOneLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import '../../assets/styles/Result.css';
+import clipboardIcon from '../../assets/images/copy.png';
 
 function Result() {
-  const [sections, setSections] = useState([]);
   const location = useLocation();
+  const response = location.state?.generatedWebsite?.content[0]?.text || '{}';
 
-  useEffect(() => {
-    const response = location.state?.generatedWebsite || '';
+  let data;
+  try {
+    data = JSON.parse(response);
+  } catch (error) {
+    console.error('Error parsing JSON:', error);
+    return <div>Error parsing the response. Please try again.</div>;
+  }
 
-    // Regular expressions to match the sections
-    const sectionRegex = /\/\* (.*?) \*\//g;
-    const jsCodeRegex = /\/\* React Code Start \*\/([\s\S]*?)\/\* React Code End \*\//g;
-    const cssCodeRegex = /\/\* CSS Code Start \*\/([\s\S]*?)\/\* CSS Code End \*\//g;
+  const pages = data.pages || [];
 
-    let match;
-    let sectionsArray = [];
-
-    // Iterate through the response to find all sections and extract their contents
-    while ((match = sectionRegex.exec(response)) !== null) {
-      const sectionName = match[1];
-      //const sectionStartIndex = match.index;
-
-      const jsMatch = jsCodeRegex.exec(response);
-      const cssMatch = cssCodeRegex.exec(response);
-
-      const jsCode = jsMatch ? jsMatch[1].trim() : '';
-      const cssCode = cssMatch ? cssMatch[1].trim() : '';
-
-      sectionsArray.push({ sectionName, jsCode, cssCode });
-
-      // To prevent matching the same code block again
-      if (jsMatch) {
-        sectionRegex.lastIndex = jsCodeRegex.lastIndex;
+  const handleCopy = (code) => {
+    navigator.clipboard.writeText(code).then(
+      () => {
+        alert('Code copied to clipboard!');
+      },
+      (err) => {
+        console.error('Could not copy text: ', err);
       }
-      if (cssMatch) {
-        sectionRegex.lastIndex = cssCodeRegex.lastIndex;
-      }
-    }
-
-    setSections(sectionsArray);
-  }, [location.state]);
+    );
+  };
 
   return (
     <div className="result-container">
       <h1>Generated Website Code</h1>
-      {sections.map((section, index) => (
-        <div className="code-section" key={index}>
-          <h2>{section.sectionName}</h2>
-          <h3>React Code</h3>
-          <textarea
-            className="code-textarea"
-            value={section.jsCode}
-            readOnly
-          />
-          <h3>CSS Code</h3>
-          <textarea
-            className="code-textarea"
-            value={section.cssCode}
-            readOnly
-          />
+      {pages.map((page, pageIndex) => (
+        <div className="page-section" key={pageIndex}>
+          <h2>{page.pageName}</h2>
+          {page.sections.map((section, sectionIndex) => (
+            <div className="code-section" key={sectionIndex}>
+              <h3>{section.sectionName}</h3>
+              {section.jsCode && (
+                <>
+                  <h4>React Code</h4>
+                  <div className="code-container">
+                    <SyntaxHighlighter
+                      language="javascript"
+                      style={atomOneLight}
+                      className="syntax-highlighter"
+                    >
+                      {section.jsCode}
+                    </SyntaxHighlighter>
+                    <img
+                      src={clipboardIcon}
+                      alt="Copy to clipboard"
+                      className="clipboard-icon"
+                      onClick={() => handleCopy(section.jsCode)}
+                    />
+                  </div>
+                </>
+              )}
+              {section.cssCode && (
+                <>
+                  <h4>CSS Code</h4>
+                  <div className="code-container">
+                    <SyntaxHighlighter
+                      language="css"
+                      style={atomOneLight}
+                      className="syntax-highlighter"
+                    >
+                      {section.cssCode}
+                    </SyntaxHighlighter>
+                    <img
+                      src={clipboardIcon}
+                      alt="Copy to clipboard"
+                      className="clipboard-icon"
+                      onClick={() => handleCopy(section.cssCode)}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
         </div>
       ))}
     </div>
