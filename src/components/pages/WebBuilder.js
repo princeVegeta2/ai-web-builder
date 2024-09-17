@@ -43,6 +43,7 @@ function WebBuilder() {
   const [projectNames, setProjectNames] = useState([]);
   const [selectedProject, setSelectedProject] = useState(''); // New state for selected project name
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [loading, setLoading] = useState(false); // Loading state
   const navigate = useNavigate();
 
   // Function to handle loading projects when "Load Project" button is clicked
@@ -243,14 +244,17 @@ function WebBuilder() {
   };
 
   const handleGenerateAndSendPrompt = async () => {
+    setLoading(true); // Set loading to true when the process starts
     try {
       const response = await generateAndSendPrompt(windows); // Send the windows state to generate the prompt
       navigate('/result', { state: { generatedWebsite: response } });
     } catch (error) {
       console.error("Failed to generate and send prompt:", error);
+    } finally {
+      setLoading(false); // Reset loading state after the request completes
     }
   };
-  
+
 
   return (
     <div className="webbuilder-container">
@@ -534,8 +538,12 @@ function WebBuilder() {
 
         {/* Generate Website Prompt Button */}
         {windows.length > 0 && (
-          <button className="generate-prompt-button" onClick={handleGenerateAndSendPrompt}>
-            Generate Website Prompt
+          <button
+            className="generate-prompt-button"
+            onClick={handleGenerateAndSendPrompt}
+            disabled={loading} // Disable button when loading is true
+          >
+            {loading ? 'Please wait...' : 'Generate Website Code'}
           </button>
         )}
 
