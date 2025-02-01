@@ -24,4 +24,4 @@ When the button is clicked, the prompt is generated and is sent to the Llam3 AI 
 
 ## License
 
-This is a startup project. All rights reserved.
+This is a pet project. No licenses apply
